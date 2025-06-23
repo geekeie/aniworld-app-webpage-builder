@@ -37,10 +37,28 @@ const Navbar = () => {
               {t('nav.home')}
             </button>
             <button 
+              onClick={() => scrollToSection('article')}
+              className="text-gray-300 hover:text-white transition-colors"
+            >
+              Article
+            </button>
+            <button 
+              onClick={() => scrollToSection('key-features')}
+              className="text-gray-300 hover:text-white transition-colors"
+            >
+              Key Features
+            </button>
+            <button 
               onClick={() => scrollToSection('features')}
               className="text-gray-300 hover:text-white transition-colors"
             >
               {t('nav.features')}
+            </button>
+            <button 
+              onClick={() => scrollToSection('blogs')}
+              className="text-gray-300 hover:text-white transition-colors"
+            >
+              Blogs
             </button>
             <button 
               onClick={() => scrollToSection('faq')}
@@ -77,10 +95,28 @@ const Navbar = () => {
                 {t('nav.home')}
               </button>
               <button 
+                onClick={() => scrollToSection('article')}
+                className="text-gray-300 hover:text-white transition-colors text-left"
+              >
+                Article
+              </button>
+              <button 
+                onClick={() => scrollToSection('key-features')}
+                className="text-gray-300 hover:text-white transition-colors text-left"
+              >
+                Key Features
+              </button>
+              <button 
                 onClick={() => scrollToSection('features')}
                 className="text-gray-300 hover:text-white transition-colors text-left"
               >
                 {t('nav.features')}
+              </button>
+              <button 
+                onClick={() => scrollToSection('blogs')}
+                className="text-gray-300 hover:text-white transition-colors text-left"
+              >
+                Blogs
               </button>
               <button 
                 onClick={() => scrollToSection('faq')}

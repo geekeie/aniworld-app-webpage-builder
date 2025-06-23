@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +20,7 @@ interface BlogPost {
   author: string;
   date: string;
   image?: string;
+  imageAlt?: string;
 }
 
 const AdminDashboard = () => {
@@ -28,6 +30,9 @@ const AdminDashboard = () => {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
   const [showBlogForm, setShowBlogForm] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const heroImageInputRef = useRef<HTMLInputElement>(null);
 
   // Content state
   const [content, setContent] = useState({
@@ -38,6 +43,11 @@ const AdminDashboard = () => {
     downloadButtonText: 'Jetzt herunterladen',
     downloadUrl: '#download',
     logoUrl: '/logo.png',
+    heroImage: '/hero-image.png',
+    appName: 'AniWorld APK',
+    appVersion: 'Version 3.2.1',
+    appSize: '25 MB',
+    appRequirements: 'Android 5.0+',
     appScreenshots: [] as string[]
   });
 
@@ -47,7 +57,8 @@ const AdminDashboard = () => {
     content: '',
     excerpt: '',
     author: 'Admin',
-    image: ''
+    image: '',
+    imageAlt: ''
   });
 
   useEffect(() => {
@@ -92,6 +103,30 @@ const AdminDashboard = () => {
     window.open('/', '_blank');
   };
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'blog' | 'logo' | 'hero') => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        
+        if (type === 'blog') {
+          setBlogForm({ ...blogForm, image: imageUrl });
+        } else if (type === 'logo') {
+          setContent({ ...content, logoUrl: imageUrl });
+        } else if (type === 'hero') {
+          setContent({ ...content, heroImage: imageUrl });
+        }
+        
+        toast({
+          title: "Image uploaded",
+          description: "Image has been uploaded successfully.",
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSaveBlog = () => {
     if (!blogForm.title || !blogForm.content || !blogForm.excerpt) {
       toast({
@@ -109,7 +144,8 @@ const AdminDashboard = () => {
       excerpt: blogForm.excerpt,
       author: blogForm.author,
       date: editingBlog ? editingBlog.date : new Date().toISOString().split('T')[0],
-      image: blogForm.image
+      image: blogForm.image,
+      imageAlt: blogForm.imageAlt
     };
 
     let updatedBlogs;
@@ -122,7 +158,7 @@ const AdminDashboard = () => {
     setBlogs(updatedBlogs);
     localStorage.setItem('aniworld_blogs', JSON.stringify(updatedBlogs));
     
-    setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '' });
+    setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '', imageAlt: '' });
     setEditingBlog(null);
     setShowBlogForm(false);
     
@@ -138,7 +174,8 @@ const AdminDashboard = () => {
       content: blog.content,
       excerpt: blog.excerpt,
       author: blog.author,
-      image: blog.image || ''
+      image: blog.image || '',
+      imageAlt: blog.imageAlt || ''
     });
     setEditingBlog(blog);
     setShowBlogForm(true);
@@ -186,6 +223,7 @@ const AdminDashboard = () => {
             <TabsList className="bg-gray-800">
               <TabsTrigger value="content">Content Management</TabsTrigger>
               <TabsTrigger value="blogs">Blog Management</TabsTrigger>
+              <TabsTrigger value="download">Download Settings</TabsTrigger>
               <TabsTrigger value="seo">SEO Settings</TabsTrigger>
               <TabsTrigger value="media">Media Management</TabsTrigger>
             </TabsList>
@@ -197,7 +235,7 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <Label htmlFor="heroTitle" className="text-gray-300">Hero Title</Label>
+                    <Label htmlFor="heroTitle" className="text-gray-300">Hero Title (H1)</Label>
                     <Input
                       id="heroTitle"
                       value={content.heroTitle}
@@ -243,7 +281,7 @@ const AdminDashboard = () => {
                   <CardTitle className="text-white">Blog Management</CardTitle>
                   <Button 
                     onClick={() => {
-                      setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '' });
+                      setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '', imageAlt: '' });
                       setEditingBlog(null);
                       setShowBlogForm(true);
                     }}
@@ -282,14 +320,14 @@ const AdminDashboard = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="blogContent" className="text-gray-300">Content</Label>
+                          <Label htmlFor="blogContent" className="text-gray-300">Content (Full Text Editor)</Label>
                           <Textarea
                             id="blogContent"
                             value={blogForm.content}
                             onChange={(e) => setBlogForm({...blogForm, content: e.target.value})}
                             className="bg-gray-900 border-gray-600 text-white"
-                            rows={6}
-                            placeholder="Full blog content"
+                            rows={10}
+                            placeholder="Write your full blog content here..."
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -303,14 +341,52 @@ const AdminDashboard = () => {
                             />
                           </div>
                           <div>
-                            <Label htmlFor="blogImage" className="text-gray-300">Image URL</Label>
+                            <Label htmlFor="blogImageAlt" className="text-gray-300">Image Alt Text (SEO)</Label>
                             <Input
-                              id="blogImage"
-                              value={blogForm.image}
-                              onChange={(e) => setBlogForm({...blogForm, image: e.target.value})}
+                              id="blogImageAlt"
+                              value={blogForm.imageAlt}
+                              onChange={(e) => setBlogForm({...blogForm, imageAlt: e.target.value})}
                               className="bg-gray-900 border-gray-600 text-white"
-                              placeholder="Optional image URL"
+                              placeholder="Alt text for SEO"
                             />
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-gray-300">Blog Thumbnail</Label>
+                          <div className="flex gap-4 items-center">
+                            <input
+                              type="file"
+                              ref={fileInputRef}
+                              onChange={(e) => handleImageUpload(e, 'blog')}
+                              accept="image/*"
+                              className="hidden"
+                            />
+                            <Button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              variant="outline"
+                              className="border-gray-600"
+                            >
+                              <Upload className="mr-2 h-4 w-4" />
+                              Upload Image
+                            </Button>
+                            {blogForm.image && (
+                              <div className="relative">
+                                <img 
+                                  src={blogForm.image} 
+                                  alt="Blog thumbnail"
+                                  className="w-20 h-20 object-cover rounded border border-gray-600"
+                                />
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="absolute -top-2 -right-2 border-red-600 text-red-400 w-6 h-6 p-0"
+                                  onClick={() => setBlogForm({...blogForm, image: ''})}
+                                >
+                                  ×
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="flex gap-4">
@@ -322,7 +398,7 @@ const AdminDashboard = () => {
                             onClick={() => {
                               setShowBlogForm(false);
                               setEditingBlog(null);
-                              setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '' });
+                              setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '', imageAlt: '' });
                             }}
                             variant="outline" 
                             className="border-gray-600"
@@ -384,6 +460,54 @@ const AdminDashboard = () => {
               </Card>
             </TabsContent>
 
+            <TabsContent value="download">
+              <Card className="card-anime">
+                <CardHeader>
+                  <CardTitle className="text-white">Download Section Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label htmlFor="appName" className="text-gray-300">App Name</Label>
+                    <Input
+                      id="appName"
+                      value={content.appName}
+                      onChange={(e) => setContent({...content, appName: e.target.value})}
+                      className="bg-gray-800 border-gray-700 text-white"
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="appVersion" className="text-gray-300">Version</Label>
+                      <Input
+                        id="appVersion"
+                        value={content.appVersion}
+                        onChange={(e) => setContent({...content, appVersion: e.target.value})}
+                        className="bg-gray-800 border-gray-700 text-white"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="appSize" className="text-gray-300">Size</Label>
+                      <Input
+                        id="appSize"
+                        value={content.appSize}
+                        onChange={(e) => setContent({...content, appSize: e.target.value})}
+                        className="bg-gray-800 border-gray-700 text-white"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="appRequirements" className="text-gray-300">Requirements</Label>
+                      <Input
+                        id="appRequirements"
+                        value={content.appRequirements}
+                        onChange={(e) => setContent({...content, appRequirements: e.target.value})}
+                        className="bg-gray-800 border-gray-700 text-white"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="seo">
               <Card className="card-anime">
                 <CardHeader>
@@ -420,50 +544,57 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <Label htmlFor="logoUrl" className="text-gray-300">Logo URL</Label>
-                    <div className="flex gap-4">
-                      <Input
-                        id="logoUrl"
-                        value={content.logoUrl}
-                        onChange={(e) => setContent({...content, logoUrl: e.target.value})}
-                        className="bg-gray-800 border-gray-700 text-white"
-                        placeholder="Enter logo URL"
+                    <Label className="text-gray-300">Logo</Label>
+                    <div className="flex gap-4 items-center">
+                      <input
+                        type="file"
+                        ref={logoInputRef}
+                        onChange={(e) => handleImageUpload(e, 'logo')}
+                        accept="image/*"
+                        className="hidden"
                       />
-                      <Button variant="outline" className="border-gray-600">
+                      <Button
+                        onClick={() => logoInputRef.current?.click()}
+                        variant="outline"
+                        className="border-gray-600"
+                      >
                         <Upload className="mr-2 h-4 w-4" />
-                        Upload
+                        Upload Logo
                       </Button>
+                      {content.logoUrl && (
+                        <img 
+                          src={content.logoUrl} 
+                          alt="Logo"
+                          className="w-16 h-16 object-contain rounded border border-gray-600"
+                        />
+                      )}
                     </div>
                   </div>
                   <div>
-                    <Label className="text-gray-300">App Screenshots</Label>
-                    <div className="mt-2 space-y-4">
-                      <Button variant="outline" className="border-gray-600">
-                        <Image className="mr-2 h-4 w-4" />
-                        Upload Screenshots
+                    <Label className="text-gray-300">Hero Section Image</Label>
+                    <div className="flex gap-4 items-center">
+                      <input
+                        type="file"
+                        ref={heroImageInputRef}
+                        onChange={(e) => handleImageUpload(e, 'hero')}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <Button
+                        onClick={() => heroImageInputRef.current?.click()}
+                        variant="outline"
+                        className="border-gray-600"
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Hero Image
                       </Button>
-                      <div className="grid grid-cols-3 gap-4">
-                        {content.appScreenshots.map((screenshot, index) => (
-                          <div key={index} className="relative">
-                            <img 
-                              src={screenshot} 
-                              alt={`Screenshot ${index + 1}`}
-                              className="w-full h-32 object-cover rounded border border-gray-600"
-                            />
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="absolute top-2 right-2 border-red-600 text-red-400"
-                              onClick={() => {
-                                const updated = content.appScreenshots.filter((_, i) => i !== index);
-                                setContent({...content, appScreenshots: updated});
-                              }}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
+                      {content.heroImage && (
+                        <img 
+                          src={content.heroImage} 
+                          alt="Hero"
+                          className="w-32 h-20 object-cover rounded border border-gray-600"
+                        />
+                      )}
                     </div>
                   </div>
                 </CardContent>

@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
@@ -15,10 +15,24 @@ import { Download as DownloadIcon, Play, Shield, Smartphone, Star, Users, Clock,
 
 const Homepage = () => {
   const { t, language } = useLanguage();
+  const [siteContent, setSiteContent] = useState({
+    heroTitle: 'Streame Anime kostenlos mit der AniWorld App',
+    heroSubtitle: 'Entdecke tausende Anime-Serien und Filme in HD-Qualität. Kostenlos, ohne Registrierung und ohne Werbung.'
+  });
 
   useEffect(() => {
     // Update document language
     document.documentElement.lang = language;
+    
+    // Load admin-configured content
+    const savedContent = localStorage.getItem('siteContent');
+    if (savedContent) {
+      const parsedContent = JSON.parse(savedContent);
+      setSiteContent({
+        heroTitle: parsedContent.heroTitle || siteContent.heroTitle,
+        heroSubtitle: parsedContent.heroSubtitle || siteContent.heroSubtitle
+      });
+    }
   }, [language]);
 
   return (
@@ -32,7 +46,7 @@ const Homepage = () => {
         <div id="article" className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto">
             
-            {/* Article Title */}
+            {/* Article Title - Using h2 since Hero already has h1 */}
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold mb-6">
                 <span className="text-gradient">
@@ -69,19 +83,19 @@ const Homepage = () => {
 
             {/* Key Features Section */}
             <div id="key-features" className="mb-12">
-              <h2 className="text-3xl font-bold mb-8 text-center">
+              <h3 className="text-3xl font-bold mb-8 text-center">
                 <span className="text-gradient">
                   {language === 'de' ? 'Wichtige Funktionen der AniWorld Android App' : 'Key Features of AniWorld Android App'}
                 </span>
-              </h2>
+              </h3>
               
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 <div className="bg-anime-dark p-6 rounded-xl border border-gray-700">
                   <div className="flex items-center gap-3 mb-4">
                     <CheckCircle className="h-6 w-6 text-green-400" />
-                    <h3 className="text-lg font-bold text-white">
+                    <h4 className="text-lg font-bold text-white">
                       {language === 'de' ? 'Riesige Anime-Bibliothek' : 'Massive Anime Library'}
-                    </h3>
+                    </h4>
                   </div>
                   <p className="text-gray-300">
                     {language === 'de' 
@@ -94,9 +108,9 @@ const Homepage = () => {
                 <div className="bg-anime-dark p-6 rounded-xl border border-gray-700">
                   <div className="flex items-center gap-3 mb-4">
                     <Heart className="h-6 w-6 text-anime-pink" />
-                    <h3 className="text-lg font-bold text-white">
+                    <h4 className="text-lg font-bold text-white">
                       {language === 'de' ? 'Romantische Animes' : 'Romance Anime'}
-                    </h3>
+                    </h4>
                   </div>
                   <p className="text-gray-300">
                     {language === 'de' 
@@ -109,9 +123,9 @@ const Homepage = () => {
                 <div className="bg-anime-dark p-6 rounded-xl border border-gray-700">
                   <div className="flex items-center gap-3 mb-4">
                     <Shield className="h-6 w-6 text-red-400" />
-                    <h3 className="text-lg font-bold text-white">
+                    <h4 className="text-lg font-bold text-white">
                       {language === 'de' ? 'Horror & Thriller' : 'Horror & Thriller'}
-                    </h3>
+                    </h4>
                   </div>
                   <p className="text-gray-300">
                     {language === 'de' 
@@ -124,9 +138,9 @@ const Homepage = () => {
                 <div className="bg-anime-dark p-6 rounded-xl border border-gray-700">
                   <div className="flex items-center gap-3 mb-4">
                     <Zap className="h-6 w-6 text-yellow-400" />
-                    <h3 className="text-lg font-bold text-white">
+                    <h4 className="text-lg font-bold text-white">
                       {language === 'de' ? 'HD-Qualität' : 'HD Quality'}
-                    </h3>
+                    </h4>
                   </div>
                   <p className="text-gray-300">
                     {language === 'de' 
@@ -139,9 +153,9 @@ const Homepage = () => {
                 <div className="bg-anime-dark p-6 rounded-xl border border-gray-700">
                   <div className="flex items-center gap-3 mb-4">
                     <Clock className="h-6 w-6 text-anime-blue" />
-                    <h3 className="text-lg font-bold text-white">
+                    <h4 className="text-lg font-bold text-white">
                       {language === 'de' ? 'Schnelle Server' : 'Fast Servers'}
-                    </h3>
+                    </h4>
                   </div>
                   <p className="text-gray-300">
                     {language === 'de' 
@@ -154,9 +168,9 @@ const Homepage = () => {
                 <div className="bg-anime-dark p-6 rounded-xl border border-gray-700">
                   <div className="flex items-center gap-3 mb-4">
                     <Globe className="h-6 w-6 text-green-400" />
-                    <h3 className="text-lg font-bold text-white">
+                    <h4 className="text-lg font-bold text-white">
                       {language === 'de' ? 'Mehrere Sprachen' : 'Multiple Languages'}
-                    </h3>
+                    </h4>
                   </div>
                   <p className="text-gray-300">
                     {language === 'de' 
@@ -207,9 +221,9 @@ const Homepage = () => {
 
             {/* System Requirements */}
             <div className="bg-anime-dark p-8 rounded-xl border border-gray-700 mb-12">
-              <h2 className="text-3xl font-bold mb-6 text-gradient">
+              <h3 className="text-3xl font-bold mb-6 text-gradient">
                 {language === 'de' ? 'Systemanforderungen' : 'System Requirements'}
-              </h2>
+              </h3>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">

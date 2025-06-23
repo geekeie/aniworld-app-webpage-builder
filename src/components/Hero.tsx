@@ -1,11 +1,33 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 
 const Hero = () => {
   const { t, language } = useLanguage();
+  const [content, setContent] = useState({
+    heroTitle: 'Streame Anime kostenlos mit der AniWorld App',
+    heroSubtitle: 'Entdecke tausende Anime-Serien und Filme in HD-Qualität. Kostenlos, ohne Registrierung und ohne Werbung.',
+    downloadButtonText: 'Jetzt herunterladen',
+    logoUrl: '/logo.png',
+    heroImage: '/hero-image.png'
+  });
+
+  useEffect(() => {
+    // Load admin-configured content
+    const savedContent = localStorage.getItem('siteContent');
+    if (savedContent) {
+      const parsedContent = JSON.parse(savedContent);
+      setContent({
+        heroTitle: parsedContent.heroTitle || content.heroTitle,
+        heroSubtitle: parsedContent.heroSubtitle || content.heroSubtitle,
+        downloadButtonText: parsedContent.downloadButtonText || content.downloadButtonText,
+        logoUrl: parsedContent.logoUrl || content.logoUrl,
+        heroImage: parsedContent.heroImage || content.heroImage
+      });
+    }
+  }, []);
 
   const scrollToDownload = () => {
     const element = document.getElementById('download');
@@ -21,10 +43,10 @@ const Hero = () => {
           {/* Left Content */}
           <div className="text-center lg:text-left animate-fade-in">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              <span className="text-gradient">{t('hero.title')}</span>
+              <span className="text-gradient">{content.heroTitle}</span>
             </h1>
             <p className="text-xl text-gray-300 mb-8 leading-relaxed">
-              {t('hero.subtitle')}
+              {content.heroSubtitle}
             </p>
             
             {/* CTA Button */}
@@ -35,7 +57,7 @@ const Hero = () => {
                 size="lg"
               >
                 <Download className="mr-2 h-5 w-5" />
-                {t('hero.download')}
+                {content.downloadButtonText}
               </Button>
             </div>
 
@@ -63,9 +85,15 @@ const Hero = () => {
               <div className="w-80 h-96 bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-6 animate-float">
                 <div className="w-full h-full bg-anime-gradient rounded-2xl flex items-center justify-center">
                   <div className="text-center text-white">
-                    <div className="w-16 h-16 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
-                      <span className="text-2xl font-bold">A</span>
-                    </div>
+                    {content.logoUrl && content.logoUrl !== '/logo.png' ? (
+                      <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <img src={content.logoUrl} alt="App Logo" className="w-full h-full object-contain" />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <span className="text-2xl font-bold">A</span>
+                      </div>
+                    )}
                     <h3 className="text-xl font-bold mb-2">AniWorld App</h3>
                     <p className="text-sm opacity-90">Premium Anime Experience</p>
                   </div>

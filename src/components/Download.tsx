@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,6 +7,30 @@ import { Download as DownloadIcon, Shield, Smartphone, Zap } from 'lucide-react'
 
 const Download = () => {
   const { t } = useLanguage();
+  const [content, setContent] = useState({
+    appName: 'AniWorld APK',
+    appVersion: 'Version 3.2.1',
+    appSize: '25 MB',
+    appRequirements: 'Android 5.0+',
+    downloadButtonText: 'Jetzt herunterladen',
+    downloadUrl: '#download'
+  });
+
+  useEffect(() => {
+    // Load content from localStorage
+    const savedContent = localStorage.getItem('siteContent');
+    if (savedContent) {
+      const parsedContent = JSON.parse(savedContent);
+      setContent({
+        appName: parsedContent.appName || content.appName,
+        appVersion: parsedContent.appVersion || content.appVersion,
+        appSize: parsedContent.appSize || content.appSize,
+        appRequirements: parsedContent.appRequirements || content.appRequirements,
+        downloadButtonText: parsedContent.downloadButtonText || content.downloadButtonText,
+        downloadUrl: parsedContent.downloadUrl || content.downloadUrl
+      });
+    }
+  }, []);
 
   const handleDownload = () => {
     // In a real app, this would trigger the actual download
@@ -37,17 +61,17 @@ const Download = () => {
                         <DownloadIcon className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold text-white">AniWorld APK</h3>
-                        <p className="text-gray-400">{t('download.version')}</p>
+                        <h3 className="text-2xl font-bold text-white">{content.appName}</h3>
+                        <p className="text-gray-400">{content.appVersion}</p>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 mb-8">
                       <div className="text-center p-4 bg-gray-800/50 rounded-lg">
-                        <div className="text-lg font-bold text-anime-purple">{t('download.size')}</div>
+                        <div className="text-lg font-bold text-anime-purple">{content.appSize}</div>
                       </div>
                       <div className="text-center p-4 bg-gray-800/50 rounded-lg">
-                        <div className="text-lg font-bold text-anime-pink">{t('download.requirements')}</div>
+                        <div className="text-lg font-bold text-anime-pink">{content.appRequirements}</div>
                       </div>
                     </div>
 
@@ -57,7 +81,7 @@ const Download = () => {
                       size="lg"
                     >
                       <DownloadIcon className="mr-2 h-5 w-5" />
-                      {t('download.button')}
+                      {content.downloadButtonText}
                     </Button>
 
                     <div className="flex items-center gap-4 text-sm text-gray-400">

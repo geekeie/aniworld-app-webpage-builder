@@ -48,8 +48,8 @@ const Footer = () => {
             </div>
             
             <div className="text-center md:text-right">
-              <p className="text-gray-400 text-sm">{t('footer.copyright')}</p>
-              <p className="text-gray-500 text-xs mt-1">{t('footer.disclaimer')}</p>
+              <p className="text-gray-400 text-sm">© 2025 AniWorld App. All rights reserved.</p>
+              <p className="text-gray-500 text-xs mt-1">For entertainment purposes only. Updated for 2025.</p>
             </div>
           </div>
         </div>

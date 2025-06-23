@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import Homepage from "./pages/Homepage";
+import ArticlePage from "./pages/ArticlePage";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
@@ -24,6 +25,8 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Homepage />} />
               <Route path="/en" element={<Homepage />} />
+              <Route path="/artikel" element={<ArticlePage />} />
+              <Route path="/en/article" element={<ArticlePage />} />
               <Route path="/admin" element={<AdminLogin />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="*" element={<NotFound />} />

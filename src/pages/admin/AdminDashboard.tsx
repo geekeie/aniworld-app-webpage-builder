@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { LogOut, Save, Eye, Upload, Plus, Edit, Trash2, Image } from 'lucide-react';
+import { LogOut, Save, Eye, Upload, Plus, Edit, Trash2, Image, Bold, Italic, Link, Type } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AdminNoIndex from '@/components/AdminNoIndex';
 
@@ -21,6 +21,10 @@ interface BlogPost {
   date: string;
   image?: string;
   imageAlt?: string;
+  slug: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  keywords?: string;
 }
 
 const AdminDashboard = () => {
@@ -31,8 +35,9 @@ const AdminDashboard = () => {
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
   const [showBlogForm, setShowBlogForm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const logoInputRef = useRef<HTMLInputElement>(null);
+  const headerLogoInputRef = useRef<HTMLInputElement>(null);
   const heroImageInputRef = useRef<HTMLInputElement>(null);
+  const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Content state
   const [content, setContent] = useState({
@@ -42,13 +47,14 @@ const AdminDashboard = () => {
     heroSubtitle: 'Entdecke tausende Anime-Serien und Filme in HD-Qualität. Kostenlos, ohne Registrierung und ohne Werbung.',
     downloadButtonText: 'Jetzt herunterladen',
     downloadUrl: '#download',
-    logoUrl: '/logo.png',
-    heroImage: '/hero-image.png',
+    headerLogo: '/logo.png',
+    heroBackgroundImage: '/hero-image.png',
     appName: 'AniWorld APK',
     appVersion: 'Version 3.2.1',
     appSize: '25 MB',
     appRequirements: 'Android 5.0+',
-    appScreenshots: [] as string[]
+    appRating: 4.8,
+    totalRatings: 12543
   });
 
   // Blog form state
@@ -58,7 +64,11 @@ const AdminDashboard = () => {
     excerpt: '',
     author: 'Admin',
     image: '',
-    imageAlt: ''
+    imageAlt: '',
+    slug: '',
+    metaTitle: '',
+    metaDescription: '',
+    keywords: ''
   });
 
   useEffect(() => {
@@ -103,7 +113,7 @@ const AdminDashboard = () => {
     window.open('/', '_blank');
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'blog' | 'logo' | 'hero') => {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'blog' | 'headerLogo' | 'heroBackground') => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -112,10 +122,10 @@ const AdminDashboard = () => {
         
         if (type === 'blog') {
           setBlogForm({ ...blogForm, image: imageUrl });
-        } else if (type === 'logo') {
-          setContent({ ...content, logoUrl: imageUrl });
-        } else if (type === 'hero') {
-          setContent({ ...content, heroImage: imageUrl });
+        } else if (type === 'headerLogo') {
+          setContent({ ...content, headerLogo: imageUrl });
+        } else if (type === 'heroBackground') {
+          setContent({ ...content, heroBackgroundImage: imageUrl });
         }
         
         toast({
@@ -125,6 +135,15 @@ const AdminDashboard = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const createSlug = (title: string): string => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
   };
 
   const handleSaveBlog = () => {
@@ -137,6 +156,8 @@ const AdminDashboard = () => {
       return;
     }
 
+    const slug = blogForm.slug || createSlug(blogForm.title);
+
     const newBlog: BlogPost = {
       id: editingBlog ? editingBlog.id : Date.now().toString(),
       title: blogForm.title,
@@ -145,7 +166,11 @@ const AdminDashboard = () => {
       author: blogForm.author,
       date: editingBlog ? editingBlog.date : new Date().toISOString().split('T')[0],
       image: blogForm.image,
-      imageAlt: blogForm.imageAlt
+      imageAlt: blogForm.imageAlt,
+      slug: slug,
+      metaTitle: blogForm.metaTitle || blogForm.title,
+      metaDescription: blogForm.metaDescription || blogForm.excerpt,
+      keywords: blogForm.keywords
     };
 
     let updatedBlogs;
@@ -158,7 +183,7 @@ const AdminDashboard = () => {
     setBlogs(updatedBlogs);
     localStorage.setItem('aniworld_blogs', JSON.stringify(updatedBlogs));
     
-    setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '', imageAlt: '' });
+    setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '', imageAlt: '', slug: '', metaTitle: '', metaDescription: '', keywords: '' });
     setEditingBlog(null);
     setShowBlogForm(false);
     
@@ -175,7 +200,11 @@ const AdminDashboard = () => {
       excerpt: blog.excerpt,
       author: blog.author,
       image: blog.image || '',
-      imageAlt: blog.imageAlt || ''
+      imageAlt: blog.imageAlt || '',
+      slug: blog.slug || '',
+      metaTitle: blog.metaTitle || '',
+      metaDescription: blog.metaDescription || '',
+      keywords: blog.keywords || ''
     });
     setEditingBlog(blog);
     setShowBlogForm(true);
@@ -190,6 +219,41 @@ const AdminDashboard = () => {
       title: "Blog deleted",
       description: "Blog post has been deleted successfully.",
     });
+  };
+
+  // Text editor functions
+  const insertTextAtCursor = (text: string) => {
+    const textarea = contentTextareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newContent = blogForm.content.substring(0, start) + text + blogForm.content.substring(end);
+      setBlogForm({ ...blogForm, content: newContent });
+      
+      // Set cursor position after inserted text
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + text.length;
+        textarea.focus();
+      }, 0);
+    }
+  };
+
+  const wrapSelectedText = (prefix: string, suffix: string = '') => {
+    const textarea = contentTextareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = blogForm.content.substring(start, end);
+      const replacement = prefix + selectedText + (suffix || prefix);
+      const newContent = blogForm.content.substring(0, start) + replacement + blogForm.content.substring(end);
+      setBlogForm({ ...blogForm, content: newContent });
+      
+      setTimeout(() => {
+        textarea.selectionStart = start + prefix.length;
+        textarea.selectionEnd = end + prefix.length;
+        textarea.focus();
+      }, 0);
+    }
   };
 
   if (!isAuthenticated) {
@@ -223,6 +287,7 @@ const AdminDashboard = () => {
             <TabsList className="bg-gray-800">
               <TabsTrigger value="content">Content Management</TabsTrigger>
               <TabsTrigger value="blogs">Blog Management</TabsTrigger>
+              <TabsTrigger value="rating">Star Rating</TabsTrigger>
               <TabsTrigger value="download">Download Settings</TabsTrigger>
               <TabsTrigger value="seo">SEO Settings</TabsTrigger>
               <TabsTrigger value="media">Media Management</TabsTrigger>
@@ -275,13 +340,48 @@ const AdminDashboard = () => {
               </Card>
             </TabsContent>
 
+            <TabsContent value="rating">
+              <Card className="card-anime">
+                <CardHeader>
+                  <CardTitle className="text-white">Star Rating Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="appRating" className="text-gray-300">App Rating (1-5)</Label>
+                      <Input
+                        id="appRating"
+                        type="number"
+                        min="1"
+                        max="5"
+                        step="0.1"
+                        value={content.appRating}
+                        onChange={(e) => setContent({...content, appRating: parseFloat(e.target.value)})}
+                        className="bg-gray-800 border-gray-700 text-white"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="totalRatings" className="text-gray-300">Total Ratings Count</Label>
+                      <Input
+                        id="totalRatings"
+                        type="number"
+                        value={content.totalRatings}
+                        onChange={(e) => setContent({...content, totalRatings: parseInt(e.target.value)})}
+                        className="bg-gray-800 border-gray-700 text-white"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="blogs">
               <Card className="card-anime">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-white">Blog Management</CardTitle>
                   <Button 
                     onClick={() => {
-                      setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '', imageAlt: '' });
+                      setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '', imageAlt: '', slug: '', metaTitle: '', metaDescription: '', keywords: '' });
                       setEditingBlog(null);
                       setShowBlogForm(true);
                     }}
@@ -298,16 +398,29 @@ const AdminDashboard = () => {
                         {editingBlog ? 'Edit Blog Post' : 'Create New Blog Post'}
                       </h3>
                       <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="blogTitle" className="text-gray-300">Title</Label>
-                          <Input
-                            id="blogTitle"
-                            value={blogForm.title}
-                            onChange={(e) => setBlogForm({...blogForm, title: e.target.value})}
-                            className="bg-gray-900 border-gray-600 text-white"
-                            placeholder="Enter blog title"
-                          />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="blogTitle" className="text-gray-300">Title</Label>
+                            <Input
+                              id="blogTitle"
+                              value={blogForm.title}
+                              onChange={(e) => setBlogForm({...blogForm, title: e.target.value, slug: createSlug(e.target.value)})}
+                              className="bg-gray-900 border-gray-600 text-white"
+                              placeholder="Enter blog title"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="blogSlug" className="text-gray-300">URL Slug</Label>
+                            <Input
+                              id="blogSlug"
+                              value={blogForm.slug}
+                              onChange={(e) => setBlogForm({...blogForm, slug: e.target.value})}
+                              className="bg-gray-900 border-gray-600 text-white"
+                              placeholder="url-friendly-slug"
+                            />
+                          </div>
                         </div>
+                        
                         <div>
                           <Label htmlFor="blogExcerpt" className="text-gray-300">Excerpt</Label>
                           <Textarea
@@ -319,17 +432,98 @@ const AdminDashboard = () => {
                             placeholder="Brief description of the blog post"
                           />
                         </div>
+
                         <div>
-                          <Label htmlFor="blogContent" className="text-gray-300">Content (Full Text Editor)</Label>
-                          <Textarea
-                            id="blogContent"
-                            value={blogForm.content}
-                            onChange={(e) => setBlogForm({...blogForm, content: e.target.value})}
-                            className="bg-gray-900 border-gray-600 text-white"
-                            rows={10}
-                            placeholder="Write your full blog content here..."
-                          />
+                          <Label className="text-gray-300">Content Editor</Label>
+                          <div className="border border-gray-600 rounded-lg overflow-hidden">
+                            {/* Editor Toolbar */}
+                            <div className="bg-gray-700 px-3 py-2 border-b border-gray-600 flex gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="border-gray-500 h-8 px-2"
+                                onClick={() => wrapSelectedText('**')}
+                              >
+                                <Bold className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="border-gray-500 h-8 px-2"
+                                onClick={() => wrapSelectedText('*')}
+                              >
+                                <Italic className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="border-gray-500 h-8 px-2"
+                                onClick={() => insertTextAtCursor('\n## ')}
+                              >
+                                <Type className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="border-gray-500 h-8 px-2"
+                                onClick={() => wrapSelectedText('[', '](URL)')}
+                              >
+                                <Link className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            
+                            <Textarea
+                              ref={contentTextareaRef}
+                              id="blogContent"
+                              value={blogForm.content}
+                              onChange={(e) => setBlogForm({...blogForm, content: e.target.value})}
+                              className="bg-gray-900 border-0 text-white resize-none rounded-none"
+                              rows={12}
+                              placeholder="Write your full blog content here... Use ** for bold, * for italic, ## for headings"
+                            />
+                          </div>
                         </div>
+
+                        {/* SEO Fields */}
+                        <div className="grid grid-cols-1 gap-4 p-4 bg-gray-700 rounded">
+                          <h4 className="text-white font-bold">SEO Settings</h4>
+                          <div>
+                            <Label htmlFor="metaTitle" className="text-gray-300">Meta Title</Label>
+                            <Input
+                              id="metaTitle"
+                              value={blogForm.metaTitle}
+                              onChange={(e) => setBlogForm({...blogForm, metaTitle: e.target.value})}
+                              className="bg-gray-900 border-gray-600 text-white"
+                              placeholder="SEO title for search engines"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="metaDescription" className="text-gray-300">Meta Description</Label>
+                            <Textarea
+                              id="metaDescription"
+                              value={blogForm.metaDescription}
+                              onChange={(e) => setBlogForm({...blogForm, metaDescription: e.target.value})}
+                              className="bg-gray-900 border-gray-600 text-white"
+                              rows={2}
+                              placeholder="SEO description for search engines"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="keywords" className="text-gray-300">Keywords</Label>
+                            <Input
+                              id="keywords"
+                              value={blogForm.keywords}
+                              onChange={(e) => setBlogForm({...blogForm, keywords: e.target.value})}
+                              className="bg-gray-900 border-gray-600 text-white"
+                              placeholder="keyword1, keyword2, keyword3"
+                            />
+                          </div>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <Label htmlFor="blogAuthor" className="text-gray-300">Author</Label>
@@ -398,7 +592,7 @@ const AdminDashboard = () => {
                             onClick={() => {
                               setShowBlogForm(false);
                               setEditingBlog(null);
-                              setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '', imageAlt: '' });
+                              setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '', imageAlt: '', slug: '', metaTitle: '', metaDescription: '', keywords: '' });
                             }}
                             variant="outline" 
                             className="border-gray-600"
@@ -544,39 +738,40 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <Label className="text-gray-300">Logo</Label>
+                    <Label className="text-gray-300">Header & Footer Logo</Label>
                     <div className="flex gap-4 items-center">
                       <input
                         type="file"
-                        ref={logoInputRef}
-                        onChange={(e) => handleImageUpload(e, 'logo')}
+                        ref={headerLogoInputRef}
+                        onChange={(e) => handleImageUpload(e, 'headerLogo')}
                         accept="image/*"
                         className="hidden"
                       />
                       <Button
-                        onClick={() => logoInputRef.current?.click()}
+                        onClick={() => headerLogoInputRef.current?.click()}
                         variant="outline"
                         className="border-gray-600"
                       >
                         <Upload className="mr-2 h-4 w-4" />
-                        Upload Logo
+                        Upload Header Logo
                       </Button>
-                      {content.logoUrl && (
+                      {content.headerLogo && (
                         <img 
-                          src={content.logoUrl} 
-                          alt="Logo"
+                          src={content.headerLogo} 
+                          alt="Header Logo"
                           className="w-16 h-16 object-contain rounded border border-gray-600"
                         />
                       )}
                     </div>
+                    <p className="text-sm text-gray-400 mt-2">This logo will appear in both header and footer</p>
                   </div>
                   <div>
-                    <Label className="text-gray-300">Hero Section Image</Label>
+                    <Label className="text-gray-300">Hero Section Background Image</Label>
                     <div className="flex gap-4 items-center">
                       <input
                         type="file"
                         ref={heroImageInputRef}
-                        onChange={(e) => handleImageUpload(e, 'hero')}
+                        onChange={(e) => handleImageUpload(e, 'heroBackground')}
                         accept="image/*"
                         className="hidden"
                       />
@@ -586,12 +781,12 @@ const AdminDashboard = () => {
                         className="border-gray-600"
                       >
                         <Upload className="mr-2 h-4 w-4" />
-                        Upload Hero Image
+                        Upload Hero Background
                       </Button>
-                      {content.heroImage && (
+                      {content.heroBackgroundImage && (
                         <img 
-                          src={content.heroImage} 
-                          alt="Hero"
+                          src={content.heroBackgroundImage} 
+                          alt="Hero Background"
                           className="w-32 h-20 object-cover rounded border border-gray-600"
                         />
                       )}

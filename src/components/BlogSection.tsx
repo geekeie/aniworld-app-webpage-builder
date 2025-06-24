@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, User } from 'lucide-react';
-import BlogModal from './BlogModal';
+import { Link } from 'react-router-dom';
 
 interface BlogPost {
   id: string;
@@ -14,26 +14,43 @@ interface BlogPost {
   date: string;
   image?: string;
   imageAlt?: string;
+  slug: string;
 }
 
 const BlogSection = () => {
   const { language } = useLanguage();
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
-  const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Helper function to create slug from title
+  const createSlug = (title: string): string => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
 
   useEffect(() => {
     // Load blogs from localStorage
     const savedBlogs = localStorage.getItem('aniworld_blogs');
     if (savedBlogs) {
       const allBlogs = JSON.parse(savedBlogs);
-      // Sort by date (newest first) and take only the latest 3
-      const latestBlogs = allBlogs
+      // Add slugs if they don't exist and sort by date (newest first) and take only the latest 3
+      const blogsWithSlugs = allBlogs.map((blog: BlogPost) => ({
+        ...blog,
+        slug: blog.slug || createSlug(blog.title)
+      }));
+      
+      const latestBlogs = blogsWithSlugs
         .sort((a: BlogPost, b: BlogPost) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 3);
       setBlogs(latestBlogs);
+      
+      // Update localStorage with slugs
+      localStorage.setItem('aniworld_blogs', JSON.stringify(blogsWithSlugs));
     } else {
-      // Default blogs
+      // Default blogs with slugs
       const defaultBlogs: BlogPost[] = [
         {
           id: '1',
@@ -45,7 +62,8 @@ const BlogSection = () => {
             ? 'Die Top-Anime-Serien, die du 2025 nicht verpassen solltest.'
             : 'The top anime series you shouldn\'t miss in 2025.',
           author: 'AniWorld Team',
-          date: '2025-01-15'
+          date: '2025-01-15',
+          slug: language === 'de' ? 'die-besten-anime-serien-2025' : 'best-anime-series-2025'
         },
         {
           id: '2',
@@ -57,7 +75,8 @@ const BlogSection = () => {
             ? 'Verbessere deine Streaming-Qualität mit diesen einfachen Tricks.'
             : 'Improve your streaming quality with these simple tricks.',
           author: 'Tech Team',
-          date: '2025-01-10'
+          date: '2025-01-10',
+          slug: language === 'de' ? 'anime-streaming-tipps-fuer-android' : 'anime-streaming-tips-for-android'
         },
         {
           id: '3',
@@ -69,7 +88,8 @@ const BlogSection = () => {
             ? 'Entdecke die neuesten Verbesserungen und Features.'
             : 'Discover the latest improvements and features.',
           author: 'Development Team',
-          date: '2025-01-05'
+          date: '2025-01-05',
+          slug: language === 'de' ? 'neue-features-in-der-aniworld-app' : 'new-features-in-aniworld-app'
         }
       ];
       setBlogs(defaultBlogs);
@@ -77,41 +97,27 @@ const BlogSection = () => {
     }
   }, [language]);
 
-  const openBlog = (blog: BlogPost) => {
-    setSelectedBlog(blog);
-    setIsModalOpen(true);
-  };
-
-  const closeBlog = () => {
-    setSelectedBlog(null);
-    setIsModalOpen(false);
-  };
-
   return (
-    <>
-      <section id="blogs" className="py-20 bg-anime-dark">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="text-gradient">
-                {language === 'de' ? 'Neueste Blog-Beiträge' : 'Latest Blog Posts'}
-              </span>
-            </h2>
-            <p className="text-xl text-gray-300">
-              {language === 'de' 
-                ? 'Bleib auf dem Laufenden mit den neuesten Anime-News und Updates'
-                : 'Stay updated with the latest anime news and updates'
-              }
-            </p>
-          </div>
+    <section id="blogs" className="py-20 bg-anime-dark">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <span className="text-gradient">
+              {language === 'de' ? 'Neueste Blog-Beiträge' : 'Latest Blog Posts'}
+            </span>
+          </h2>
+          <p className="text-xl text-gray-300">
+            {language === 'de' 
+              ? 'Bleib auf dem Laufenden mit den neuesten Anime-News und Updates'
+              : 'Stay updated with the latest anime news and updates'
+            }
+          </p>
+        </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {blogs.map((blog) => (
-              <Card 
-                key={blog.id} 
-                className="card-anime hover:scale-105 transition-all duration-300 group cursor-pointer"
-                onClick={() => openBlog(blog)}
-              >
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {blogs.map((blog) => (
+            <Link key={blog.id} to={`/blog/${blog.slug}`}>
+              <Card className="card-anime hover:scale-105 transition-all duration-300 group cursor-pointer">
                 <CardContent className="p-6">
                   {blog.image && (
                     <div className="w-full h-48 bg-gray-800 rounded-lg mb-4 overflow-hidden">
@@ -143,17 +149,11 @@ const BlogSection = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            </Link>
+          ))}
         </div>
-      </section>
-
-      <BlogModal 
-        blog={selectedBlog}
-        isOpen={isModalOpen}
-        onClose={closeBlog}
-      />
-    </>
+      </div>
+    </section>
   );
 };
 

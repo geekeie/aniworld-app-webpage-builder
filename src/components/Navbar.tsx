@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Download, Menu, X } from 'lucide-react';
@@ -7,6 +7,18 @@ import { Download, Menu, X } from 'lucide-react';
 const Navbar = () => {
   const { t } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [headerLogo, setHeaderLogo] = useState('/logo.png');
+
+  useEffect(() => {
+    // Load header logo from localStorage
+    const savedContent = localStorage.getItem('siteContent');
+    if (savedContent) {
+      const parsedContent = JSON.parse(savedContent);
+      if (parsedContent.headerLogo) {
+        setHeaderLogo(parsedContent.headerLogo);
+      }
+    }
+  }, []);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -22,8 +34,14 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-anime-gradient rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">A</span>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+              {headerLogo && headerLogo !== '/logo.png' ? (
+                <img src={headerLogo} alt="AniWorld Logo" className="w-full h-full object-contain" />
+              ) : (
+                <div className="w-8 h-8 bg-anime-gradient rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">A</span>
+                </div>
+              )}
             </div>
             <span className="text-white font-bold text-xl">AniWorld</span>
           </div>

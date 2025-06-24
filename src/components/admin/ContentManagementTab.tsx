@@ -5,16 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
-interface ContentState {
-  heroTitle: string;
-  heroSubtitle: string;
-  downloadButtonText: string;
-  downloadUrl: string;
-}
-
 interface ContentManagementTabProps {
-  content: ContentState;
-  setContent: (content: ContentState) => void;
+  content: {
+    heroTitle: string;
+    heroSubtitle: string;
+    downloadButtonText: string;
+    downloadUrl: string;
+    [key: string]: any; // Allow additional properties
+  };
+  setContent: (content: any) => void;
 }
 
 const ContentManagementTab = ({ content, setContent }: ContentManagementTabProps) => {

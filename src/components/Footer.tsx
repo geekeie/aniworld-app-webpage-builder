@@ -69,12 +69,30 @@ const Footer = () => {
             <div className="text-center md:text-right">
               <p className="text-gray-400 text-sm">© 2025 AniWorld App. All rights reserved.</p>
               <p className="text-gray-500 text-xs mt-1">For entertainment purposes only. Updated for 2025.</p>
-              <div className="mt-2">
+              <div className="mt-2 flex flex-wrap justify-center md:justify-end gap-4">
                 <Link 
                   to="/privacy" 
                   className="text-gray-400 hover:text-white text-xs transition-colors"
                 >
                   Privacy Policy
+                </Link>
+                <Link 
+                  to="/dmca" 
+                  className="text-gray-400 hover:text-white text-xs transition-colors"
+                >
+                  DMCA Policy
+                </Link>
+                <Link 
+                  to="/about" 
+                  className="text-gray-400 hover:text-white text-xs transition-colors"
+                >
+                  About Us
+                </Link>
+                <Link 
+                  to="/contact" 
+                  className="text-gray-400 hover:text-white text-xs transition-colors"
+                >
+                  Contact Us
                 </Link>
               </div>
             </div>

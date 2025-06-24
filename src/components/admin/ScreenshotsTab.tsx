@@ -51,7 +51,20 @@ const ScreenshotsTab = ({
 
     const updatedScreenshots = [...screenshots, newScreenshot];
     setScreenshots(updatedScreenshots);
-    localStorage.setItem('aniworld_screenshots', JSON.stringify(updatedScreenshots));
+    
+    // Save to localStorage with error handling
+    try {
+      localStorage.setItem('aniworld_screenshots', JSON.stringify(updatedScreenshots));
+      console.log('Screenshots saved successfully:', updatedScreenshots);
+    } catch (error) {
+      console.error('Error saving screenshots:', error);
+      toast({
+        title: "Save error",
+        description: "Failed to save screenshot. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setScreenshotForm({ image: '', alt: '', title: '' });
     
@@ -64,7 +77,13 @@ const ScreenshotsTab = ({
   const handleDeleteScreenshot = (screenshotId: string) => {
     const updatedScreenshots = screenshots.filter(screenshot => screenshot.id !== screenshotId);
     setScreenshots(updatedScreenshots);
-    localStorage.setItem('aniworld_screenshots', JSON.stringify(updatedScreenshots));
+    
+    try {
+      localStorage.setItem('aniworld_screenshots', JSON.stringify(updatedScreenshots));
+      console.log('Screenshot deleted, updated list:', updatedScreenshots);
+    } catch (error) {
+      console.error('Error deleting screenshot:', error);
+    }
     
     toast({
       title: "Screenshot deleted",
@@ -106,6 +125,9 @@ const ScreenshotsTab = ({
                       src={screenshotForm.image} 
                       alt="Screenshot preview"
                       className="w-20 h-20 object-cover rounded border border-gray-600"
+                      onError={(e) => {
+                        console.error('Preview image failed to load:', screenshotForm.image);
+                      }}
                     />
                     <Button
                       size="sm"
@@ -160,6 +182,11 @@ const ScreenshotsTab = ({
                     src={screenshot.image} 
                     alt={screenshot.alt}
                     className="w-full h-40 object-cover rounded mb-3"
+                    onError={(e) => {
+                      console.error('Admin screenshot failed to load:', screenshot.image);
+                      const target = e.target as HTMLImageElement;
+                      target.style.opacity = '0.5';
+                    }}
                   />
                   <p className="text-white font-medium mb-1">{screenshot.title || 'Untitled'}</p>
                   <p className="text-gray-400 text-sm mb-3">{screenshot.alt}</p>

@@ -14,10 +14,37 @@ const ScreenshotsSection = () => {
   const [screenshots, setScreenshots] = useState<AppScreenshot[]>([]);
 
   useEffect(() => {
-    const savedScreenshots = localStorage.getItem('aniworld_screenshots');
-    if (savedScreenshots) {
-      setScreenshots(JSON.parse(savedScreenshots));
-    }
+    const loadScreenshots = () => {
+      try {
+        const savedScreenshots = localStorage.getItem('aniworld_screenshots');
+        console.log('Saved screenshots from localStorage:', savedScreenshots);
+        
+        if (savedScreenshots) {
+          const parsedScreenshots = JSON.parse(savedScreenshots);
+          console.log('Parsed screenshots:', parsedScreenshots);
+          setScreenshots(parsedScreenshots);
+        } else {
+          console.log('No screenshots found in localStorage');
+        }
+      } catch (error) {
+        console.error('Error loading screenshots:', error);
+      }
+    };
+
+    loadScreenshots();
+
+    // Listen for storage changes to update screenshots in real-time
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'aniworld_screenshots') {
+        loadScreenshots();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   if (screenshots.length === 0) {
@@ -50,6 +77,14 @@ const ScreenshotsSection = () => {
                   alt={screenshot.alt}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   loading="lazy"
+                  onError={(e) => {
+                    console.error('Image failed to load:', screenshot.image);
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                  onLoad={() => {
+                    console.log('Image loaded successfully:', screenshot.image);
+                  }}
                 />
               </div>
               {screenshot.title && (

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   const { t } = useLanguage();
@@ -68,6 +69,14 @@ const Footer = () => {
             <div className="text-center md:text-right">
               <p className="text-gray-400 text-sm">© 2025 AniWorld App. All rights reserved.</p>
               <p className="text-gray-500 text-xs mt-1">For entertainment purposes only. Updated for 2025.</p>
+              <div className="mt-2">
+                <Link 
+                  to="/privacy" 
+                  className="text-gray-400 hover:text-white text-xs transition-colors"
+                >
+                  Privacy Policy
+                </Link>
+              </div>
             </div>
           </div>
         </div>

@@ -11,6 +11,7 @@ const Hero = () => {
     heroSubtitle: language === 'de' ? 'Entdecke tausende Anime-Serien und Filme in HD-Qualität. Kostenlos, ohne Registrierung und ohne Werbung.' : 'Discover thousands of anime series and movies in HD quality. Free, without registration and without ads.',
     downloadButtonText: language === 'de' ? 'Jetzt herunterladen' : 'Download Now',
     heroBackgroundImage: '/hero-image.png',
+    heroForegroundLogo: '',
     appRating: 4.8,
     totalRatings: 12543
   });
@@ -25,6 +26,7 @@ const Hero = () => {
         heroSubtitle: parsedContent.heroSubtitle || (language === 'de' ? 'Entdecke tausende Anime-Serien und Filme in HD-Qualität. Kostenlos, ohne Registrierung und ohne Werbung.' : 'Discover thousands of anime series and movies in HD quality. Free, without registration and without ads.'),
         downloadButtonText: parsedContent.downloadButtonText || (language === 'de' ? 'Jetzt herunterladen' : 'Download Now'),
         heroBackgroundImage: parsedContent.heroBackgroundImage || '/hero-image.png',
+        heroForegroundLogo: parsedContent.heroForegroundLogo || '',
         appRating: parsedContent.appRating || 4.8,
         totalRatings: parsedContent.totalRatings || 12543
       });
@@ -129,9 +131,19 @@ const Hero = () => {
                 {/* Content */}
                 <div className="relative z-10 w-full h-full flex items-center justify-center">
                   <div className="text-center text-white">
-                    <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full mx-auto mb-4 flex items-center justify-center">
-                      <span className="text-2xl font-bold">A</span>
-                    </div>
+                    {content.heroForegroundLogo ? (
+                      <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                        <img 
+                          src={content.heroForegroundLogo} 
+                          alt="AniWorld App Logo"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <span className="text-2xl font-bold">A</span>
+                      </div>
+                    )}
                     <h3 className="text-xl font-bold mb-2">AniWorld App</h3>
                     <p className="text-sm opacity-90">Premium Anime Experience</p>
                   </div>

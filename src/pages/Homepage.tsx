@@ -10,7 +10,8 @@ import Footer from '@/components/Footer';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import SEOHead from '@/components/SEOHead';
 import ContentSection from '@/components/ContentSection';
-import BlogSection from '@/components/BlogSection';
+import BlogSectionEnhanced from '@/components/BlogSectionEnhanced';
+import ScreenshotsSection from '@/components/ScreenshotsSection';
 import { Download as DownloadIcon, Play, Shield, Smartphone, Star, Users, Clock, Globe, Zap, Heart, Award, CheckCircle } from 'lucide-react';
 
 const Homepage = () => {
@@ -269,7 +270,8 @@ const Homepage = () => {
         </div>
 
         <Features />
-        <BlogSection />
+        <ScreenshotsSection />
+        <BlogSectionEnhanced />
         <Download />
         <FAQ />
         <Footer />

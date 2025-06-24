@@ -9,6 +9,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import Homepage from "./pages/Homepage";
 import ArticlePage from "./pages/ArticlePage";
 import BlogPost from "./pages/BlogPost";
+import BlogListing from "./pages/BlogListing";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import DMCAPolicy from "./pages/DMCAPolicy";
 import AboutUs from "./pages/AboutUs";
@@ -32,6 +33,7 @@ const App = () => {
               <Route path="/en" element={<Homepage />} />
               <Route path="/artikel" element={<ArticlePage />} />
               <Route path="/en/article" element={<ArticlePage />} />
+              <Route path="/blog" element={<BlogListing />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/dmca" element={<DMCAPolicy />} />

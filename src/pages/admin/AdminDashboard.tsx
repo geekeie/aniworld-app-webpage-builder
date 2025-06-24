@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -27,6 +26,13 @@ interface BlogPost {
   keywords?: string;
 }
 
+interface AppScreenshot {
+  id: string;
+  image: string;
+  alt: string;
+  title?: string;
+}
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -34,9 +40,12 @@ const AdminDashboard = () => {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
   const [showBlogForm, setShowBlogForm] = useState(false);
+  const [screenshots, setScreenshots] = useState<AppScreenshot[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const headerLogoInputRef = useRef<HTMLInputElement>(null);
   const heroImageInputRef = useRef<HTMLInputElement>(null);
+  const heroLogoInputRef = useRef<HTMLInputElement>(null);
+  const screenshotInputRef = useRef<HTMLInputElement>(null);
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Content state
@@ -49,6 +58,7 @@ const AdminDashboard = () => {
     downloadUrl: '#download',
     headerLogo: '/logo.png',
     heroBackgroundImage: '/hero-image.png',
+    heroForegroundLogo: '',
     appName: 'AniWorld APK',
     appVersion: 'Version 3.2.1',
     appSize: '25 MB',
@@ -71,12 +81,20 @@ const AdminDashboard = () => {
     keywords: ''
   });
 
+  // Screenshot form state
+  const [screenshotForm, setScreenshotForm] = useState({
+    image: '',
+    alt: '',
+    title: ''
+  });
+
   useEffect(() => {
     const authStatus = localStorage.getItem('isAdminAuthenticated');
     if (authStatus === 'true') {
       setIsAuthenticated(true);
       loadBlogs();
       loadContent();
+      loadScreenshots();
     } else {
       navigate('/admin');
     }
@@ -93,6 +111,13 @@ const AdminDashboard = () => {
     const savedContent = localStorage.getItem('siteContent');
     if (savedContent) {
       setContent({ ...content, ...JSON.parse(savedContent) });
+    }
+  };
+
+  const loadScreenshots = () => {
+    const savedScreenshots = localStorage.getItem('aniworld_screenshots');
+    if (savedScreenshots) {
+      setScreenshots(JSON.parse(savedScreenshots));
     }
   };
 
@@ -113,7 +138,7 @@ const AdminDashboard = () => {
     window.open('/', '_blank');
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'blog' | 'headerLogo' | 'heroBackground') => {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'blog' | 'headerLogo' | 'heroBackground' | 'heroLogo' | 'screenshot') => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -126,6 +151,10 @@ const AdminDashboard = () => {
           setContent({ ...content, headerLogo: imageUrl });
         } else if (type === 'heroBackground') {
           setContent({ ...content, heroBackgroundImage: imageUrl });
+        } else if (type === 'heroLogo') {
+          setContent({ ...content, heroForegroundLogo: imageUrl });
+        } else if (type === 'screenshot') {
+          setScreenshotForm({ ...screenshotForm, image: imageUrl });
         }
         
         toast({
@@ -221,6 +250,46 @@ const AdminDashboard = () => {
     });
   };
 
+  const handleSaveScreenshot = () => {
+    if (!screenshotForm.image || !screenshotForm.alt) {
+      toast({
+        title: "Missing fields",
+        description: "Please provide image and alt text.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newScreenshot: AppScreenshot = {
+      id: Date.now().toString(),
+      image: screenshotForm.image,
+      alt: screenshotForm.alt,
+      title: screenshotForm.title
+    };
+
+    const updatedScreenshots = [...screenshots, newScreenshot];
+    setScreenshots(updatedScreenshots);
+    localStorage.setItem('aniworld_screenshots', JSON.stringify(updatedScreenshots));
+    
+    setScreenshotForm({ image: '', alt: '', title: '' });
+    
+    toast({
+      title: "Screenshot added",
+      description: "Screenshot has been saved successfully.",
+    });
+  };
+
+  const handleDeleteScreenshot = (screenshotId: string) => {
+    const updatedScreenshots = screenshots.filter(screenshot => screenshot.id !== screenshotId);
+    setScreenshots(updatedScreenshots);
+    localStorage.setItem('aniworld_screenshots', JSON.stringify(updatedScreenshots));
+    
+    toast({
+      title: "Screenshot deleted",
+      description: "Screenshot has been deleted successfully.",
+    });
+  };
+
   // Text editor functions
   const insertTextAtCursor = (text: string) => {
     const textarea = contentTextareaRef.current;
@@ -230,7 +299,6 @@ const AdminDashboard = () => {
       const newContent = blogForm.content.substring(0, start) + text + blogForm.content.substring(end);
       setBlogForm({ ...blogForm, content: newContent });
       
-      // Set cursor position after inserted text
       setTimeout(() => {
         textarea.selectionStart = textarea.selectionEnd = start + text.length;
         textarea.focus();
@@ -287,6 +355,7 @@ const AdminDashboard = () => {
             <TabsList className="bg-gray-800">
               <TabsTrigger value="content">Content Management</TabsTrigger>
               <TabsTrigger value="blogs">Blog Management</TabsTrigger>
+              <TabsTrigger value="screenshots">Screenshots</TabsTrigger>
               <TabsTrigger value="rating">Star Rating</TabsTrigger>
               <TabsTrigger value="download">Download Settings</TabsTrigger>
               <TabsTrigger value="seo">SEO Settings</TabsTrigger>
@@ -335,41 +404,6 @@ const AdminDashboard = () => {
                       onChange={(e) => setContent({...content, downloadUrl: e.target.value})}
                       className="bg-gray-800 border-gray-700 text-white"
                     />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="rating">
-              <Card className="card-anime">
-                <CardHeader>
-                  <CardTitle className="text-white">Star Rating Settings</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="appRating" className="text-gray-300">App Rating (1-5)</Label>
-                      <Input
-                        id="appRating"
-                        type="number"
-                        min="1"
-                        max="5"
-                        step="0.1"
-                        value={content.appRating}
-                        onChange={(e) => setContent({...content, appRating: parseFloat(e.target.value)})}
-                        className="bg-gray-800 border-gray-700 text-white"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="totalRatings" className="text-gray-300">Total Ratings Count</Label>
-                      <Input
-                        id="totalRatings"
-                        type="number"
-                        value={content.totalRatings}
-                        onChange={(e) => setContent({...content, totalRatings: parseInt(e.target.value)})}
-                        className="bg-gray-800 border-gray-700 text-white"
-                      />
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -654,6 +688,150 @@ const AdminDashboard = () => {
               </Card>
             </TabsContent>
 
+            <TabsContent value="screenshots">
+              <Card className="card-anime">
+                <CardHeader>
+                  <CardTitle className="text-white">App Screenshots Management</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
+                    <h3 className="text-lg font-bold text-white mb-4">Add New Screenshot</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-gray-300">Screenshot Image</Label>
+                        <div className="flex gap-4 items-center">
+                          <input
+                            type="file"
+                            ref={screenshotInputRef}
+                            onChange={(e) => handleImageUpload(e, 'screenshot')}
+                            accept="image/*"
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => screenshotInputRef.current?.click()}
+                            variant="outline"
+                            className="border-gray-600"
+                          >
+                            <Upload className="mr-2 h-4 w-4" />
+                            Upload Screenshot
+                          </Button>
+                          {screenshotForm.image && (
+                            <div className="relative">
+                              <img 
+                                src={screenshotForm.image} 
+                                alt="Screenshot preview"
+                                className="w-20 h-20 object-cover rounded border border-gray-600"
+                              />
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="absolute -top-2 -right-2 border-red-600 text-red-400 w-6 h-6 p-0"
+                                onClick={() => setScreenshotForm({...screenshotForm, image: ''})}
+                              >
+                                ×
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="screenshotAlt" className="text-gray-300">Alt Text (Required for SEO)</Label>
+                          <Input
+                            id="screenshotAlt"
+                            value={screenshotForm.alt}
+                            onChange={(e) => setScreenshotForm({...screenshotForm, alt: e.target.value})}
+                            className="bg-gray-900 border-gray-600 text-white"
+                            placeholder="Describe the screenshot"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="screenshotTitle" className="text-gray-300">Title (Optional)</Label>
+                          <Input
+                            id="screenshotTitle"
+                            value={screenshotForm.title}
+                            onChange={(e) => setScreenshotForm({...screenshotForm, title: e.target.value})}
+                            className="bg-gray-900 border-gray-600 text-white"
+                            placeholder="Screenshot title"
+                          />
+                        </div>
+                      </div>
+                      <Button onClick={handleSaveScreenshot} className="btn-anime">
+                        <Save className="mr-2 h-4 w-4" />
+                        Add Screenshot
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-white">Current Screenshots</h3>
+                    {screenshots.length === 0 ? (
+                      <p className="text-gray-400">No screenshots uploaded yet.</p>
+                    ) : (
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {screenshots.map((screenshot) => (
+                          <div key={screenshot.id} className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                            <img 
+                              src={screenshot.image} 
+                              alt={screenshot.alt}
+                              className="w-full h-40 object-cover rounded mb-3"
+                            />
+                            <p className="text-white font-medium mb-1">{screenshot.title || 'Untitled'}</p>
+                            <p className="text-gray-400 text-sm mb-3">{screenshot.alt}</p>
+                            <Button
+                              onClick={() => handleDeleteScreenshot(screenshot.id)}
+                              size="sm"
+                              variant="outline"
+                              className="border-red-600 text-red-400 hover:bg-red-600 w-full"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="rating">
+              <Card className="card-anime">
+                <CardHeader>
+                  <CardTitle className="text-white">Star Rating Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="appRating" className="text-gray-300">App Rating (1-5)</Label>
+                      <Input
+                        id="appRating"
+                        type="number"
+                        min="1"
+                        max="5"
+                        step="0.1"
+                        value={content.appRating}
+                        onChange={(e) => setContent({...content, appRating: parseFloat(e.target.value)})}
+                        className="bg-gray-800 border-gray-700 text-white"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="totalRatings" className="text-gray-300">Total Ratings Count</Label>
+                      <Input
+                        id="totalRatings"
+                        type="number"
+                        value={content.totalRatings}
+                        onChange={(e) => setContent({...content, totalRatings: parseInt(e.target.value)})}
+                        className="bg-gray-800 border-gray-700 text-white"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="download">
               <Card className="card-anime">
                 <CardHeader>
@@ -791,6 +969,44 @@ const AdminDashboard = () => {
                         />
                       )}
                     </div>
+                  </div>
+                  <div>
+                    <Label className="text-gray-300">Hero Section Foreground Logo</Label>
+                    <div className="flex gap-4 items-center">
+                      <input
+                        type="file"
+                        ref={heroLogoInputRef}
+                        onChange={(e) => handleImageUpload(e, 'heroLogo')}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <Button
+                        onClick={() => heroLogoInputRef.current?.click()}
+                        variant="outline"
+                        className="border-gray-600"
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Hero Logo
+                      </Button>
+                      {content.heroForegroundLogo && (
+                        <div className="relative">
+                          <img 
+                            src={content.heroForegroundLogo} 
+                            alt="Hero Foreground Logo"
+                            className="w-20 h-20 object-contain rounded border border-gray-600"
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="absolute -top-2 -right-2 border-red-600 text-red-400 w-6 h-6 p-0"
+                            onClick={() => setContent({...content, heroForegroundLogo: ''})}
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-400 mt-2">This logo will appear as foreground overlay in the hero section</p>
                   </div>
                 </CardContent>
               </Card>

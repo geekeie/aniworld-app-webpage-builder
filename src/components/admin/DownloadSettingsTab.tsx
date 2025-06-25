@@ -10,6 +10,7 @@ interface DownloadSettingsTabProps {
     appVersion: string;
     appSize: string;
     appRequirements: string;
+    downloadUrl: string;
   };
   setContent: (content: any) => void;
 }
@@ -27,6 +28,16 @@ const DownloadSettingsTab = ({ content, setContent }: DownloadSettingsTabProps) 
             id="appName"
             value={content.appName}
             onChange={(e) => setContent({...content, appName: e.target.value})}
+            className="bg-gray-800 border-gray-700 text-white"
+          />
+        </div>
+        <div>
+          <Label htmlFor="downloadUrl" className="text-gray-300">Download APK URL</Label>
+          <Input
+            id="downloadUrl"
+            value={content.downloadUrl}
+            onChange={(e) => setContent({...content, downloadUrl: e.target.value})}
+            placeholder="https://example.com/aniworld-app.apk"
             className="bg-gray-800 border-gray-700 text-white"
           />
         </div>

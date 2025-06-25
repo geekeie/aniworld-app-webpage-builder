@@ -52,7 +52,7 @@ const AdminDashboard = () => {
     heroTitle: 'Streame Anime kostenlos mit der AniWorld App',
     heroSubtitle: 'Entdecke tausende Anime-Serien und Filme in HD-Qualität. Kostenlos, ohne Registrierung und ohne Werbung.',
     downloadButtonText: 'Jetzt herunterladen',
-    downloadUrl: '#download',
+    downloadUrl: '',
     headerLogo: '/logo.png',
     heroBackgroundImage: '/hero-image.png',
     heroForegroundLogo: '',

@@ -13,7 +13,7 @@ const Download = () => {
     appSize: '25 MB',
     appRequirements: 'Android 5.0+',
     downloadButtonText: 'Jetzt herunterladen',
-    downloadUrl: '#download'
+    downloadUrl: ''
   });
 
   useEffect(() => {
@@ -33,10 +33,13 @@ const Download = () => {
   }, []);
 
   const handleDownload = () => {
-    // In a real app, this would trigger the actual download
-    console.log('Download initiated');
-    // You would redirect to the actual APK file
-    // window.open('/aniworld-app.apk', '_blank');
+    if (content.downloadUrl) {
+      // Open the download URL in a new tab
+      window.open(content.downloadUrl, '_blank');
+      console.log('Download initiated for:', content.downloadUrl);
+    } else {
+      console.log('No download URL configured');
+    }
   };
 
   return (
@@ -79,10 +82,17 @@ const Download = () => {
                       onClick={handleDownload}
                       className="btn-anime w-full text-lg py-6 mb-6"
                       size="lg"
+                      disabled={!content.downloadUrl}
                     >
                       <DownloadIcon className="mr-2 h-5 w-5" />
                       {content.downloadButtonText}
                     </Button>
+
+                    {!content.downloadUrl && (
+                      <p className="text-sm text-gray-500 text-center mb-6">
+                        Download URL not configured
+                      </p>
+                    )}
 
                     <div className="flex items-center gap-4 text-sm text-gray-400">
                       <div className="flex items-center gap-2">

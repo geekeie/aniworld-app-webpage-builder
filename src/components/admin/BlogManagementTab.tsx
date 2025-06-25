@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Save, Upload, Edit, Trash2, Bold, Italic, Link, Type } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { createBlog, updateBlog, deleteBlog, getAllBlogs } from '@/services/supabaseService';
 
 interface BlogPost {
   id: string;
@@ -15,12 +15,12 @@ interface BlogPost {
   content: string;
   excerpt: string;
   author: string;
-  date: string;
+  created_at: string;
   image?: string;
-  imageAlt?: string;
+  image_alt?: string;
   slug: string;
-  metaTitle?: string;
-  metaDescription?: string;
+  meta_title?: string;
+  meta_description?: string;
   keywords?: string;
 }
 
@@ -53,7 +53,7 @@ const BlogManagementTab = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSaveBlog = () => {
+  const handleSaveBlog = async () => {
     if (!blogForm.title || !blogForm.content || !blogForm.excerpt) {
       toast({
         title: "Missing fields",
@@ -65,39 +65,55 @@ const BlogManagementTab = ({
 
     const slug = blogForm.slug || createSlug(blogForm.title);
 
-    const newBlog: BlogPost = {
-      id: editingBlog ? editingBlog.id : Date.now().toString(),
-      title: blogForm.title,
-      content: blogForm.content,
-      excerpt: blogForm.excerpt,
-      author: blogForm.author,
-      date: editingBlog ? editingBlog.date : new Date().toISOString().split('T')[0],
-      image: blogForm.image,
-      imageAlt: blogForm.imageAlt,
-      slug: slug,
-      metaTitle: blogForm.metaTitle || blogForm.title,
-      metaDescription: blogForm.metaDescription || blogForm.excerpt,
-      keywords: blogForm.keywords
-    };
+    try {
+      if (editingBlog) {
+        await updateBlog(editingBlog.id, {
+          title: blogForm.title,
+          content: blogForm.content,
+          excerpt: blogForm.excerpt,
+          author: blogForm.author,
+          slug: slug,
+          image: blogForm.image,
+          imageAlt: blogForm.imageAlt,
+          metaTitle: blogForm.metaTitle || blogForm.title,
+          metaDescription: blogForm.metaDescription || blogForm.excerpt,
+          keywords: blogForm.keywords
+        });
+      } else {
+        await createBlog({
+          title: blogForm.title,
+          content: blogForm.content,
+          excerpt: blogForm.excerpt,
+          author: blogForm.author,
+          slug: slug,
+          image: blogForm.image,
+          imageAlt: blogForm.imageAlt,
+          metaTitle: blogForm.metaTitle || blogForm.title,
+          metaDescription: blogForm.metaDescription || blogForm.excerpt,
+          keywords: blogForm.keywords
+        });
+      }
 
-    let updatedBlogs;
-    if (editingBlog) {
-      updatedBlogs = blogs.map(blog => blog.id === editingBlog.id ? newBlog : blog);
-    } else {
-      updatedBlogs = [newBlog, ...blogs];
+      // Reload blogs from database
+      const updatedBlogs = await getAllBlogs();
+      setBlogs(updatedBlogs);
+      
+      setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '', imageAlt: '', slug: '', metaTitle: '', metaDescription: '', keywords: '' });
+      setEditingBlog(null);
+      setShowBlogForm(false);
+      
+      toast({
+        title: editingBlog ? "Blog updated" : "Blog created",
+        description: "Blog post has been saved to the database successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving blog:', error);
+      toast({
+        title: "Save failed",
+        description: "Failed to save blog post. Please try again.",
+        variant: "destructive",
+      });
     }
-
-    setBlogs(updatedBlogs);
-    localStorage.setItem('aniworld_blogs', JSON.stringify(updatedBlogs));
-    
-    setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '', imageAlt: '', slug: '', metaTitle: '', metaDescription: '', keywords: '' });
-    setEditingBlog(null);
-    setShowBlogForm(false);
-    
-    toast({
-      title: editingBlog ? "Blog updated" : "Blog created",
-      description: "Blog post has been saved successfully.",
-    });
   };
 
   const handleEditBlog = (blog: BlogPost) => {
@@ -107,25 +123,36 @@ const BlogManagementTab = ({
       excerpt: blog.excerpt,
       author: blog.author,
       image: blog.image || '',
-      imageAlt: blog.imageAlt || '',
+      imageAlt: blog.image_alt || '',
       slug: blog.slug || '',
-      metaTitle: blog.metaTitle || '',
-      metaDescription: blog.metaDescription || '',
+      metaTitle: blog.meta_title || '',
+      metaDescription: blog.meta_description || '',
       keywords: blog.keywords || ''
     });
     setEditingBlog(blog);
     setShowBlogForm(true);
   };
 
-  const handleDeleteBlog = (blogId: string) => {
-    const updatedBlogs = blogs.filter(blog => blog.id !== blogId);
-    setBlogs(updatedBlogs);
-    localStorage.setItem('aniworld_blogs', JSON.stringify(updatedBlogs));
-    
-    toast({
-      title: "Blog deleted",
-      description: "Blog post has been deleted successfully.",
-    });
+  const handleDeleteBlog = async (blogId: string) => {
+    try {
+      await deleteBlog(blogId);
+      
+      // Reload blogs from database
+      const updatedBlogs = await getAllBlogs();
+      setBlogs(updatedBlogs);
+      
+      toast({
+        title: "Blog deleted",
+        description: "Blog post has been deleted from the database successfully.",
+      });
+    } catch (error) {
+      console.error('Error deleting blog:', error);
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete blog post. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const insertTextAtCursor = (text: string) => {
@@ -164,7 +191,7 @@ const BlogManagementTab = ({
   return (
     <Card className="card-anime">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-white">Blog Management</CardTitle>
+        <CardTitle className="text-white">Blog Management (Database Connected)</CardTitle>
         <Button 
           onClick={() => {
             setBlogForm({ title: '', content: '', excerpt: '', author: 'Admin', image: '', imageAlt: '', slug: '', metaTitle: '', metaDescription: '', keywords: '' });
@@ -407,7 +434,7 @@ const BlogManagementTab = ({
                   <TableRow key={blog.id}>
                     <TableCell className="text-white">{blog.title}</TableCell>
                     <TableCell className="text-gray-300">{blog.author}</TableCell>
-                    <TableCell className="text-gray-300">{new Date(blog.date).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-gray-300">{new Date(blog.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button

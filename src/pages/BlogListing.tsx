@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Calendar, User, ArrowRight } from 'lucide-react';
+import { getBlogs } from '@/services/supabaseService';
 
 interface BlogPost {
   id: string;
@@ -12,18 +13,19 @@ interface BlogPost {
   content: string;
   excerpt: string;
   author: string;
-  date: string;
+  created_at: string;
   image?: string;
-  imageAlt?: string;
+  image_alt?: string;
   slug: string;
-  metaTitle?: string;
-  metaDescription?: string;
+  meta_title?: string;
+  meta_description?: string;
   keywords?: string;
 }
 
 const BlogListing = () => {
   const { language } = useLanguage();
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     document.title = language === 'de' ? 'Blog - AniWorld App' : 'Blog - AniWorld App';
@@ -36,11 +38,19 @@ const BlogListing = () => {
       );
     }
 
-    // Load blogs
-    const savedBlogs = localStorage.getItem('aniworld_blogs');
-    if (savedBlogs) {
-      setBlogs(JSON.parse(savedBlogs));
-    }
+    // Load blogs from Supabase
+    const loadBlogs = async () => {
+      try {
+        const data = await getBlogs();
+        setBlogs(data);
+      } catch (error) {
+        console.error('Error loading blogs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBlogs();
   }, [language]);
 
   const formatDate = (dateString: string) => {
@@ -51,6 +61,14 @@ const BlogListing = () => {
       day: 'numeric'
     });
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-anime-darker flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-anime-darker">
@@ -94,7 +112,7 @@ const BlogListing = () => {
                         <div className="aspect-video overflow-hidden">
                           <img
                             src={blog.image}
-                            alt={blog.imageAlt || blog.title}
+                            alt={blog.image_alt || blog.title}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                         </div>
@@ -106,7 +124,7 @@ const BlogListing = () => {
                         <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
-                            <span>{formatDate(blog.date)}</span>
+                            <span>{formatDate(blog.created_at)}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <User className="w-4 h-4" />

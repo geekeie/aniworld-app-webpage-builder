@@ -9,7 +9,135 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      app_screenshots: {
+        Row: {
+          alt_text: string
+          created_at: string
+          id: string
+          image_url: string
+          sort_order: number
+          title: string | null
+        }
+        Insert: {
+          alt_text: string
+          created_at?: string
+          id?: string
+          image_url: string
+          sort_order?: number
+          title?: string | null
+        }
+        Update: {
+          alt_text?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          sort_order?: number
+          title?: string | null
+        }
+        Relationships: []
+      }
+      blog_posts: {
+        Row: {
+          author: string
+          content: string
+          created_at: string
+          excerpt: string
+          id: string
+          image: string | null
+          image_alt: string | null
+          keywords: string | null
+          meta_description: string | null
+          meta_title: string | null
+          published: boolean
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string
+          content: string
+          created_at?: string
+          excerpt: string
+          id?: string
+          image?: string | null
+          image_alt?: string | null
+          keywords?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          published?: boolean
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          content?: string
+          created_at?: string
+          excerpt?: string
+          id?: string
+          image?: string | null
+          image_alt?: string | null
+          keywords?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          published?: boolean
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      media_files: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          file_type: string
+          file_url: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          file_type: string
+          file_url: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_content: {
+        Row: {
+          content_key: string
+          content_value: Json
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          content_key: string
+          content_value: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          content_key?: string
+          content_value?: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

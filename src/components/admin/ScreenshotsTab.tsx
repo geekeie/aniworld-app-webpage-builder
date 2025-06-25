@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Upload, Save, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { createScreenshot, deleteScreenshot, getScreenshots } from '@/services/supabaseService';
 
 interface AppScreenshot {
   id: string;
@@ -32,7 +33,7 @@ const ScreenshotsTab = ({
   const { toast } = useToast();
   const screenshotInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSaveScreenshot = () => {
+  const handleSaveScreenshot = async () => {
     if (!screenshotForm.image || !screenshotForm.alt) {
       toast({
         title: "Missing fields",
@@ -42,59 +43,69 @@ const ScreenshotsTab = ({
       return;
     }
 
-    const newScreenshot: AppScreenshot = {
-      id: Date.now().toString(),
-      image: screenshotForm.image,
-      alt: screenshotForm.alt,
-      title: screenshotForm.title
-    };
-
-    const updatedScreenshots = [...screenshots, newScreenshot];
-    setScreenshots(updatedScreenshots);
-    
-    // Save to localStorage with error handling
     try {
-      localStorage.setItem('aniworld_screenshots', JSON.stringify(updatedScreenshots));
-      console.log('Screenshots saved successfully:', updatedScreenshots);
+      await createScreenshot({
+        image: screenshotForm.image,
+        alt: screenshotForm.alt,
+        title: screenshotForm.title
+      });
+
+      // Reload screenshots from database
+      const updatedScreenshots = await getScreenshots();
+      setScreenshots(updatedScreenshots.map(s => ({
+        id: s.id,
+        image: s.image_url,
+        alt: s.alt_text,
+        title: s.title
+      })));
+      
+      setScreenshotForm({ image: '', alt: '', title: '' });
+      
+      toast({
+        title: "Screenshot added",
+        description: "Screenshot has been saved to the database successfully.",
+      });
     } catch (error) {
-      console.error('Error saving screenshots:', error);
+      console.error('Error saving screenshot:', error);
       toast({
         title: "Save error",
-        description: "Failed to save screenshot. Please try again.",
+        description: "Failed to save screenshot to database. Please try again.",
         variant: "destructive",
       });
-      return;
     }
-    
-    setScreenshotForm({ image: '', alt: '', title: '' });
-    
-    toast({
-      title: "Screenshot added",
-      description: "Screenshot has been saved successfully.",
-    });
   };
 
-  const handleDeleteScreenshot = (screenshotId: string) => {
-    const updatedScreenshots = screenshots.filter(screenshot => screenshot.id !== screenshotId);
-    setScreenshots(updatedScreenshots);
-    
+  const handleDeleteScreenshot = async (screenshotId: string) => {
     try {
-      localStorage.setItem('aniworld_screenshots', JSON.stringify(updatedScreenshots));
-      console.log('Screenshot deleted, updated list:', updatedScreenshots);
+      await deleteScreenshot(screenshotId);
+      
+      // Reload screenshots from database
+      const updatedScreenshots = await getScreenshots();
+      setScreenshots(updatedScreenshots.map(s => ({
+        id: s.id,
+        image: s.image_url,
+        alt: s.alt_text,
+        title: s.title
+      })));
+      
+      toast({
+        title: "Screenshot deleted",
+        description: "Screenshot has been deleted from the database successfully.",
+      });
     } catch (error) {
       console.error('Error deleting screenshot:', error);
+      toast({
+        title: "Delete error",
+        description: "Failed to delete screenshot from database. Please try again.",
+        variant: "destructive",
+      });
     }
-    
-    toast({
-      title: "Screenshot deleted",
-      description: "Screenshot has been deleted successfully.",
-    });
   };
 
   return (
     <Card className="card-anime">
       <CardHeader>
-        <CardTitle className="text-white">App Screenshots Management</CardTitle>
+        <CardTitle className="text-white">App Screenshots Management (Database Connected)</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">

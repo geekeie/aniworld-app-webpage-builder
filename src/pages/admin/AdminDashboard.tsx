@@ -14,6 +14,13 @@ import DownloadSettingsTab from '@/components/admin/DownloadSettingsTab';
 import SEOSettingsTab from '@/components/admin/SEOSettingsTab';
 import HeaderCodeTab from '@/components/admin/HeaderCodeTab';
 import MediaManagementTab from '@/components/admin/MediaManagementTab';
+import { 
+  getSiteContent, 
+  updateSiteContent, 
+  getAllBlogs, 
+  getScreenshots,
+  getMediaFiles 
+} from '@/services/supabaseService';
 
 interface BlogPost {
   id: string;
@@ -21,19 +28,19 @@ interface BlogPost {
   content: string;
   excerpt: string;
   author: string;
-  date: string;
+  created_at: string;
   image?: string;
-  imageAlt?: string;
+  image_alt?: string;
   slug: string;
-  metaTitle?: string;
-  metaDescription?: string;
+  meta_title?: string;
+  meta_description?: string;
   keywords?: string;
 }
 
 interface AppScreenshot {
   id: string;
-  image: string;
-  alt: string;
+  image_url: string;
+  alt_text: string;
   title?: string;
 }
 
@@ -45,6 +52,7 @@ const AdminDashboard = () => {
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
   const [showBlogForm, setShowBlogForm] = useState(false);
   const [screenshots, setScreenshots] = useState<AppScreenshot[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Content state
   const [content, setContent] = useState({
@@ -62,7 +70,8 @@ const AdminDashboard = () => {
     appSize: '25 MB',
     appRequirements: 'Android 5.0+',
     appRating: 4.8,
-    totalRatings: 12543
+    totalRatings: 12543,
+    customHeaderCode: ''
   });
 
   // Blog form state
@@ -90,32 +99,59 @@ const AdminDashboard = () => {
     const authStatus = localStorage.getItem('isAdminAuthenticated');
     if (authStatus === 'true') {
       setIsAuthenticated(true);
-      loadBlogs();
-      loadContent();
-      loadScreenshots();
+      loadAllData();
     } else {
       navigate('/admin');
     }
   }, [navigate]);
 
-  const loadBlogs = () => {
-    const savedBlogs = localStorage.getItem('aniworld_blogs');
-    if (savedBlogs) {
-      setBlogs(JSON.parse(savedBlogs));
-    }
-  };
+  const loadAllData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load site content
+      const siteContent = await getSiteContent();
+      if (siteContent) {
+        setContent(prevContent => ({ ...prevContent, ...siteContent }));
+      }
 
-  const loadContent = () => {
-    const savedContent = localStorage.getItem('siteContent');
-    if (savedContent) {
-      setContent({ ...content, ...JSON.parse(savedContent) });
-    }
-  };
+      // Load blogs
+      const blogsData = await getAllBlogs();
+      setBlogs(blogsData);
 
-  const loadScreenshots = () => {
-    const savedScreenshots = localStorage.getItem('aniworld_screenshots');
-    if (savedScreenshots) {
-      setScreenshots(JSON.parse(savedScreenshots));
+      // Load screenshots
+      const screenshotsData = await getScreenshots();
+      setScreenshots(screenshotsData.map(s => ({
+        id: s.id,
+        image: s.image_url,
+        alt: s.alt_text,
+        title: s.title
+      })));
+
+      // Load media files
+      const mediaFiles = await getMediaFiles();
+      const mediaMap: any = {};
+      mediaFiles.forEach(file => {
+        if (file.file_type === 'header_logo') {
+          mediaMap.headerLogo = file.file_url;
+        } else if (file.file_type === 'hero_background') {
+          mediaMap.heroBackgroundImage = file.file_url;
+        } else if (file.file_type === 'hero_foreground') {
+          mediaMap.heroForegroundLogo = file.file_url;
+        }
+      });
+      
+      setContent(prevContent => ({ ...prevContent, ...mediaMap }));
+      
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast({
+        title: "Error loading data",
+        description: "Failed to load data from database. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -124,12 +160,21 @@ const AdminDashboard = () => {
     navigate('/admin');
   };
 
-  const handleSave = () => {
-    localStorage.setItem('siteContent', JSON.stringify(content));
-    toast({
-      title: "Content saved",
-      description: "Your changes have been saved successfully.",
-    });
+  const handleSave = async () => {
+    try {
+      await updateSiteContent(content);
+      toast({
+        title: "Content saved",
+        description: "Your changes have been saved successfully to the database.",
+      });
+    } catch (error) {
+      console.error('Error saving content:', error);
+      toast({
+        title: "Save failed",
+        description: "Failed to save changes to database. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePreview = () => {
@@ -177,6 +222,14 @@ const AdminDashboard = () => {
     return null;
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-anime-darker flex items-center justify-center">
+        <div className="text-white text-xl">Loading dashboard...</div>
+      </div>
+    );
+  }
+
   return (
     <>
       <AdminNoIndex />
@@ -184,7 +237,7 @@ const AdminDashboard = () => {
         {/* Header */}
         <div className="bg-anime-dark border-b border-gray-800 p-4">
           <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+            <h1 className="text-2xl font-bold text-white">Admin Dashboard - Database Connected</h1>
             <div className="flex gap-4">
               <Button onClick={handlePreview} variant="outline" className="border-gray-600">
                 <Eye className="mr-2 h-4 w-4" />
@@ -265,7 +318,7 @@ const AdminDashboard = () => {
           <div className="flex justify-end mt-6">
             <Button onClick={handleSave} className="btn-anime">
               <Save className="mr-2 h-4 w-4" />
-              Save Changes
+              Save Changes to Database
             </Button>
           </div>
         </div>

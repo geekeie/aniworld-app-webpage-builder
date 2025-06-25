@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Clock, User, Home } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { getBlogBySlug } from '@/services/supabaseService';
 
 interface BlogPost {
   id: string;
@@ -13,12 +14,12 @@ interface BlogPost {
   content: string;
   excerpt: string;
   author: string;
-  date: string;
+  created_at: string;
   image?: string;
-  imageAlt?: string;
+  image_alt?: string;
   slug: string;
-  metaTitle?: string;
-  metaDescription?: string;
+  meta_title?: string;
+  meta_description?: string;
   keywords?: string;
 }
 
@@ -29,24 +30,30 @@ const BlogPost = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load blog from localStorage
-    const savedBlogs = localStorage.getItem('aniworld_blogs');
-    if (savedBlogs) {
-      const allBlogs: BlogPost[] = JSON.parse(savedBlogs);
-      const foundBlog = allBlogs.find(b => b.slug === slug);
-      setBlog(foundBlog || null);
-    }
-    setLoading(false);
+    const loadBlog = async () => {
+      if (!slug) return;
+      
+      try {
+        const data = await getBlogBySlug(slug);
+        setBlog(data);
+      } catch (error) {
+        console.error('Error loading blog:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBlog();
   }, [slug]);
 
   useEffect(() => {
     // Update SEO meta tags
     if (blog) {
-      document.title = blog.metaTitle || blog.title;
+      document.title = blog.meta_title || blog.title;
       
       const metaDescription = document.querySelector('meta[name="description"]');
       if (metaDescription) {
-        metaDescription.setAttribute('content', blog.metaDescription || blog.excerpt);
+        metaDescription.setAttribute('content', blog.meta_description || blog.excerpt);
       }
 
       const metaKeywords = document.querySelector('meta[name="keywords"]');
@@ -88,8 +95,8 @@ const BlogPost = () => {
           "@type": "Person",
           "name": blog.author
         },
-        "datePublished": blog.date,
-        "dateModified": blog.date,
+        "datePublished": blog.created_at,
+        "dateModified": blog.created_at,
         "image": blog.image,
         "publisher": {
           "@type": "Organization",
@@ -162,7 +169,7 @@ const BlogPost = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  <span>{new Date(blog.date).toLocaleDateString()}</span>
+                  <span>{new Date(blog.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
 
@@ -170,7 +177,7 @@ const BlogPost = () => {
                 <div className="w-full mb-8">
                   <img 
                     src={blog.image} 
-                    alt={blog.imageAlt || blog.title}
+                    alt={blog.image_alt || blog.title}
                     className="w-full h-64 md:h-96 object-cover rounded-xl"
                   />
                 </div>

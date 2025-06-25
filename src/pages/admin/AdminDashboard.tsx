@@ -119,14 +119,9 @@ const AdminDashboard = () => {
       const blogsData = await getAllBlogs();
       setBlogs(blogsData);
 
-      // Load screenshots
+      // Load screenshots - use the correct property names from database
       const screenshotsData = await getScreenshots();
-      setScreenshots(screenshotsData.map(s => ({
-        id: s.id,
-        image: s.image_url,
-        alt: s.alt_text,
-        title: s.title
-      })));
+      setScreenshots(screenshotsData);
 
       // Load media files
       const mediaFiles = await getMediaFiles();

@@ -10,8 +10,8 @@ import { createScreenshot, deleteScreenshot, getScreenshots } from '@/services/s
 
 interface AppScreenshot {
   id: string;
-  image: string;
-  alt: string;
+  image_url: string;
+  alt_text: string;
   title?: string;
 }
 
@@ -52,12 +52,7 @@ const ScreenshotsTab = ({
 
       // Reload screenshots from database
       const updatedScreenshots = await getScreenshots();
-      setScreenshots(updatedScreenshots.map(s => ({
-        id: s.id,
-        image: s.image_url,
-        alt: s.alt_text,
-        title: s.title
-      })));
+      setScreenshots(updatedScreenshots);
       
       setScreenshotForm({ image: '', alt: '', title: '' });
       
@@ -81,12 +76,7 @@ const ScreenshotsTab = ({
       
       // Reload screenshots from database
       const updatedScreenshots = await getScreenshots();
-      setScreenshots(updatedScreenshots.map(s => ({
-        id: s.id,
-        image: s.image_url,
-        alt: s.alt_text,
-        title: s.title
-      })));
+      setScreenshots(updatedScreenshots);
       
       toast({
         title: "Screenshot deleted",
@@ -190,17 +180,17 @@ const ScreenshotsTab = ({
               {screenshots.map((screenshot) => (
                 <div key={screenshot.id} className="bg-gray-800 p-4 rounded-lg border border-gray-700">
                   <img 
-                    src={screenshot.image} 
-                    alt={screenshot.alt}
+                    src={screenshot.image_url} 
+                    alt={screenshot.alt_text}
                     className="w-full h-40 object-cover rounded mb-3"
                     onError={(e) => {
-                      console.error('Admin screenshot failed to load:', screenshot.image);
+                      console.error('Admin screenshot failed to load:', screenshot.image_url);
                       const target = e.target as HTMLImageElement;
                       target.style.opacity = '0.5';
                     }}
                   />
                   <p className="text-white font-medium mb-1">{screenshot.title || 'Untitled'}</p>
-                  <p className="text-gray-400 text-sm mb-3">{screenshot.alt}</p>
+                  <p className="text-gray-400 text-sm mb-3">{screenshot.alt_text}</p>
                   <Button
                     onClick={() => handleDeleteScreenshot(screenshot.id)}
                     size="sm"

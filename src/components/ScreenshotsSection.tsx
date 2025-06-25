@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getScreenshots } from '@/services/supabaseService';
 
 interface AppScreenshot {
   id: string;
-  image: string;
-  alt: string;
+  image_url: string;
+  alt_text: string;
   title?: string;
 }
 
@@ -14,37 +15,37 @@ const ScreenshotsSection = () => {
   const [screenshots, setScreenshots] = useState<AppScreenshot[]>([]);
 
   useEffect(() => {
-    const loadScreenshots = () => {
+    const loadScreenshots = async () => {
       try {
-        const savedScreenshots = localStorage.getItem('aniworld_screenshots');
-        console.log('Saved screenshots from localStorage:', savedScreenshots);
-        
-        if (savedScreenshots) {
-          const parsedScreenshots = JSON.parse(savedScreenshots);
-          console.log('Parsed screenshots:', parsedScreenshots);
-          setScreenshots(parsedScreenshots);
-        } else {
-          console.log('No screenshots found in localStorage');
-        }
+        console.log('Loading screenshots from database...');
+        const screenshotsData = await getScreenshots();
+        console.log('Loaded screenshots from database:', screenshotsData);
+        setScreenshots(screenshotsData);
       } catch (error) {
-        console.error('Error loading screenshots:', error);
+        console.error('Error loading screenshots from database:', error);
+        // Fallback to localStorage for backwards compatibility
+        try {
+          const savedScreenshots = localStorage.getItem('aniworld_screenshots');
+          console.log('Falling back to localStorage screenshots:', savedScreenshots);
+          
+          if (savedScreenshots) {
+            const parsedScreenshots = JSON.parse(savedScreenshots);
+            // Transform legacy format to new format
+            const transformedScreenshots = parsedScreenshots.map((screenshot: any) => ({
+              id: screenshot.id,
+              image_url: screenshot.image || screenshot.image_url,
+              alt_text: screenshot.alt || screenshot.alt_text,
+              title: screenshot.title
+            }));
+            setScreenshots(transformedScreenshots);
+          }
+        } catch (localStorageError) {
+          console.error('Error loading screenshots from localStorage:', localStorageError);
+        }
       }
     };
 
     loadScreenshots();
-
-    // Listen for storage changes to update screenshots in real-time
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'aniworld_screenshots') {
-        loadScreenshots();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, []);
 
   if (screenshots.length === 0) {
@@ -73,17 +74,17 @@ const ScreenshotsSection = () => {
             <div key={screenshot.id} className="group relative overflow-hidden rounded-xl border border-gray-700 bg-anime-darker">
               <div className="aspect-[9/16] overflow-hidden">
                 <img
-                  src={screenshot.image}
-                  alt={screenshot.alt}
+                  src={screenshot.image_url}
+                  alt={screenshot.alt_text}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   loading="lazy"
                   onError={(e) => {
-                    console.error('Image failed to load:', screenshot.image);
+                    console.error('Image failed to load:', screenshot.image_url);
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                   }}
                   onLoad={() => {
-                    console.log('Image loaded successfully:', screenshot.image);
+                    console.log('Image loaded successfully:', screenshot.image_url);
                   }}
                 />
               </div>

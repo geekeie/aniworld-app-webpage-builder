@@ -12,6 +12,7 @@ import ScreenshotsTab from '@/components/admin/ScreenshotsTab';
 import StarRatingTab from '@/components/admin/StarRatingTab';
 import DownloadSettingsTab from '@/components/admin/DownloadSettingsTab';
 import SEOSettingsTab from '@/components/admin/SEOSettingsTab';
+import HeaderCodeTab from '@/components/admin/HeaderCodeTab';
 import MediaManagementTab from '@/components/admin/MediaManagementTab';
 
 interface BlogPost {

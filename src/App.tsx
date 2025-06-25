@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import CustomHeaderCode from "./components/CustomHeaderCode";
 import Homepage from "./pages/Homepage";
 import ArticlePage from "./pages/ArticlePage";
 import BlogPost from "./pages/BlogPost";
@@ -28,6 +29,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <LanguageProvider>
+            <CustomHeaderCode />
             <Routes>
               <Route path="/" element={<Homepage />} />
               <Route path="/en" element={<Homepage />} />

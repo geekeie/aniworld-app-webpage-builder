@@ -14,6 +14,7 @@ import StarRatingTab from '@/components/admin/StarRatingTab';
 import DownloadSettingsTab from '@/components/admin/DownloadSettingsTab';
 import SEOSettingsTab from '@/components/admin/SEOSettingsTab';
 import MediaManagementTab from '@/components/admin/MediaManagementTab';
+import HeaderCodeTab from '@/components/admin/HeaderCodeTab';
 import { updateSiteContent } from '@/services/supabaseService';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAdminData } from '@/hooks/useAdminData';
@@ -131,6 +132,7 @@ const AdminDashboard = () => {
               <TabsTrigger value="download">Download Settings</TabsTrigger>
               <TabsTrigger value="seo">SEO Settings</TabsTrigger>
               <TabsTrigger value="media">Media Management</TabsTrigger>
+              <TabsTrigger value="header">Header Code</TabsTrigger>
             </TabsList>
 
             <TabsContent value="content">
@@ -179,6 +181,13 @@ const AdminDashboard = () => {
                 content={content}
                 setContent={setContent}
                 handleImageUpload={handleImageUpload}
+              />
+            </TabsContent>
+
+            <TabsContent value="header">
+              <HeaderCodeTab
+                content={content}
+                setContent={setContent}
               />
             </TabsContent>
           </Tabs>

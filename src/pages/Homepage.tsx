@@ -12,6 +12,8 @@ import SEOHead from '@/components/SEOHead';
 import ContentSection from '@/components/ContentSection';
 import BlogSectionEnhanced from '@/components/BlogSectionEnhanced';
 import ScreenshotsSection from '@/components/ScreenshotsSection';
+import CustomHeaderCode from '@/components/CustomHeaderCode';
+import { getSiteContent } from '@/services/supabaseService';
 import { Download as DownloadIcon, Play, Shield, Smartphone, Star, Users, Clock, Globe, Zap, Heart, Award, CheckCircle } from 'lucide-react';
 
 const Homepage = () => {
@@ -25,20 +27,51 @@ const Homepage = () => {
     // Update document language
     document.documentElement.lang = language;
     
-    // Load admin-configured content
-    const savedContent = localStorage.getItem('siteContent');
-    if (savedContent) {
-      const parsedContent = JSON.parse(savedContent);
-      setSiteContent({
-        heroTitle: parsedContent.heroTitle || siteContent.heroTitle,
-        heroSubtitle: parsedContent.heroSubtitle || siteContent.heroSubtitle
-      });
-    }
+    // Load admin-configured content from database
+    const loadContent = async () => {
+      try {
+        console.log('Loading site content from database...');
+        const databaseContent = await getSiteContent();
+        console.log('Database content loaded:', databaseContent);
+        
+        if (databaseContent && typeof databaseContent === 'object') {
+          setSiteContent({
+            heroTitle: databaseContent.heroTitle || siteContent.heroTitle,
+            heroSubtitle: databaseContent.heroSubtitle || siteContent.heroSubtitle
+          });
+        } else {
+          console.log('No database content found, falling back to localStorage');
+          // Fallback to localStorage
+          const savedContent = localStorage.getItem('siteContent');
+          if (savedContent) {
+            const parsedContent = JSON.parse(savedContent);
+            setSiteContent({
+              heroTitle: parsedContent.heroTitle || siteContent.heroTitle,
+              heroSubtitle: parsedContent.heroSubtitle || siteContent.heroSubtitle
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading site content:', error);
+        // Fallback to localStorage
+        const savedContent = localStorage.getItem('siteContent');
+        if (savedContent) {
+          const parsedContent = JSON.parse(savedContent);
+          setSiteContent({
+            heroTitle: parsedContent.heroTitle || siteContent.heroTitle,
+            heroSubtitle: parsedContent.heroSubtitle || siteContent.heroSubtitle
+          });
+        }
+      }
+    };
+
+    loadContent();
   }, [language]);
 
   return (
     <>
       <SEOHead />
+      <CustomHeaderCode />
       <div className="min-h-screen bg-anime-darker">
         <Navbar />
         <Hero />
@@ -72,7 +105,6 @@ const Homepage = () => {
               icon={<Users className="h-8 w-8 text-anime-purple" />}
             />
 
-            {/* What Makes Special */}
             <ContentSection
               title={language === 'de' ? 'Was macht die AniWorld App besonders?' : 'What Makes AniWorld App Special?'}
               content={language === 'de' 
@@ -190,7 +222,6 @@ const Homepage = () => {
               </p>
             </div>
 
-            {/* Download Instructions */}
             <ContentSection
               title={language === 'de' ? 'So lädst du die AniWorld APK auf Android herunter' : 'How to Download AniWorld APK on Android'}
               content={language === 'de' 
@@ -200,7 +231,6 @@ const Homepage = () => {
               icon={<DownloadIcon className="h-8 w-8 text-green-400" />}
             />
 
-            {/* Safety */}
             <ContentSection
               title={language === 'de' ? 'Ist die AniWorld App sicher?' : 'Is the AniWorld App Safe?'}
               content={language === 'de' 
@@ -210,7 +240,6 @@ const Homepage = () => {
               icon={<Shield className="h-8 w-8 text-green-500" />}
             />
 
-            {/* Performance Features */}
             <ContentSection
               title={language === 'de' ? 'Leistung und Kompatibilität' : 'Performance and Compatibility'}
               content={language === 'de' 
@@ -257,7 +286,6 @@ const Homepage = () => {
               </div>
             </div>
 
-            {/* User Experience */}
             <ContentSection
               title={language === 'de' ? 'Benutzerfreundliche Oberfläche' : 'User-Friendly Interface'}
               content={language === 'de' 

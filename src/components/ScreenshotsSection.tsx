@@ -13,14 +13,21 @@ interface AppScreenshot {
 const ScreenshotsSection = () => {
   const { language } = useLanguage();
   const [screenshots, setScreenshots] = useState<AppScreenshot[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadScreenshots = async () => {
       try {
+        setLoading(true);
         console.log('Loading screenshots from database...');
         const screenshotsData = await getScreenshots();
         console.log('Loaded screenshots from database:', screenshotsData);
-        setScreenshots(screenshotsData);
+        
+        if (screenshotsData && screenshotsData.length > 0) {
+          setScreenshots(screenshotsData);
+        } else {
+          console.log('No screenshots found in database');
+        }
       } catch (error) {
         console.error('Error loading screenshots from database:', error);
         // Fallback to localStorage for backwards compatibility
@@ -42,15 +49,32 @@ const ScreenshotsSection = () => {
         } catch (localStorageError) {
           console.error('Error loading screenshots from localStorage:', localStorageError);
         }
+      } finally {
+        setLoading(false);
       }
     };
 
     loadScreenshots();
   }, []);
 
+  if (loading) {
+    return (
+      <section className="py-16 bg-anime-dark">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="text-white text-xl">Loading screenshots...</div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   if (screenshots.length === 0) {
+    console.log('No screenshots to display, hiding section');
     return null;
   }
+
+  console.log('Rendering screenshots section with', screenshots.length, 'screenshots');
 
   return (
     <section className="py-16 bg-anime-dark">
@@ -70,33 +94,41 @@ const ScreenshotsSection = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {screenshots.map((screenshot) => (
-            <div key={screenshot.id} className="group relative overflow-hidden rounded-xl border border-gray-700 bg-anime-darker">
-              <div className="aspect-[9/16] overflow-hidden">
-                <img
-                  src={screenshot.image_url}
-                  alt={screenshot.alt_text}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  loading="lazy"
-                  onError={(e) => {
-                    console.error('Image failed to load:', screenshot.image_url);
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                  onLoad={() => {
-                    console.log('Image loaded successfully:', screenshot.image_url);
-                  }}
-                />
-              </div>
-              {screenshot.title && (
-                <div className="p-4">
-                  <h3 className="text-white font-medium text-center">{screenshot.title}</h3>
+          {screenshots.map((screenshot) => {
+            console.log('Rendering screenshot:', screenshot.id, screenshot.image_url);
+            return (
+              <div key={screenshot.id} className="group relative overflow-hidden rounded-xl border border-gray-700 bg-anime-darker">
+                <div className="aspect-[9/16] overflow-hidden">
+                  <img
+                    src={screenshot.image_url}
+                    alt={screenshot.alt_text}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                    onError={(e) => {
+                      console.error('Image failed to load:', screenshot.image_url);
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      // Show error message
+                      const parent = target.parentElement;
+                      if (parent) {
+                        parent.innerHTML = '<div class="flex items-center justify-center h-full text-red-400 text-sm">Image failed to load</div>';
+                      }
+                    }}
+                    onLoad={() => {
+                      console.log('Image loaded successfully:', screenshot.image_url);
+                    }}
+                  />
                 </div>
-              )}
-              {/* Overlay for hover effect */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </div>
-          ))}
+                {screenshot.title && (
+                  <div className="p-4">
+                    <h3 className="text-white font-medium text-center">{screenshot.title}</h3>
+                  </div>
+                )}
+                {/* Overlay for hover effect */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

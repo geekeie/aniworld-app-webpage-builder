@@ -34,10 +34,11 @@ const Homepage = () => {
         const databaseContent = await getSiteContent();
         console.log('Database content loaded:', databaseContent);
         
-        if (databaseContent && typeof databaseContent === 'object') {
+        if (databaseContent && typeof databaseContent === 'object' && !Array.isArray(databaseContent)) {
+          const contentObj = databaseContent as Record<string, any>;
           setSiteContent({
-            heroTitle: databaseContent.heroTitle || siteContent.heroTitle,
-            heroSubtitle: databaseContent.heroSubtitle || siteContent.heroSubtitle
+            heroTitle: contentObj.heroTitle || siteContent.heroTitle,
+            heroSubtitle: contentObj.heroSubtitle || siteContent.heroSubtitle
           });
         } else {
           console.log('No database content found, falling back to localStorage');

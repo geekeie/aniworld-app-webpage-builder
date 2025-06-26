@@ -11,8 +11,9 @@ const CustomHeaderCode = () => {
         const siteContent = await getSiteContent();
         let customCode = '';
         
-        if (siteContent && siteContent.customHeaderCode) {
-          customCode = siteContent.customHeaderCode;
+        if (siteContent && typeof siteContent === 'object' && !Array.isArray(siteContent)) {
+          const contentObj = siteContent as Record<string, any>;
+          customCode = contentObj.customHeaderCode || '';
           console.log('Custom header code loaded from database');
         } else {
           // Fallback to localStorage

@@ -80,7 +80,7 @@ export const useAdminData = () => {
       
       // Load site content
       const siteContent = await getSiteContent();
-      if (siteContent) {
+      if (siteContent && typeof siteContent === 'object') {
         setContent(prevContent => ({ ...prevContent, ...siteContent }));
       }
 

@@ -105,7 +105,9 @@ export const useAdminData = () => {
         }
       });
       
-      setContent(prevContent => ({ ...prevContent, ...mediaMap }));
+      if (Object.keys(mediaMap).length > 0) {
+        setContent(prevContent => ({ ...prevContent, ...mediaMap }));
+      }
       
     } catch (error) {
       console.error('Error loading data:', error);

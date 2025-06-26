@@ -2,6 +2,8 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 import AdminNoIndex from '@/components/AdminNoIndex';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminSaveButton from '@/components/admin/AdminSaveButton';
@@ -28,7 +30,8 @@ const AdminDashboard = () => {
     screenshots, 
     setScreenshots, 
     content, 
-    setContent 
+    setContent,
+    refreshData
   } = useAdminData();
   
   const {
@@ -54,11 +57,18 @@ const AdminDashboard = () => {
 
   const handleSave = async () => {
     try {
+      console.log('Saving content to database:', content);
       await updateSiteContent(content);
       toast({
         title: "Content saved",
         description: "Your changes have been saved successfully to the database.",
       });
+      
+      // Refresh data after save to ensure consistency
+      setTimeout(() => {
+        refreshData();
+      }, 1000);
+      
     } catch (error) {
       console.error('Error saving content:', error);
       toast({
@@ -67,6 +77,14 @@ const AdminDashboard = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleRefresh = async () => {
+    await refreshData();
+    toast({
+      title: "Data refreshed",
+      description: "All data has been refreshed from the database.",
+    });
   };
 
   const handlePreview = () => {
@@ -96,6 +114,14 @@ const AdminDashboard = () => {
         />
 
         <div className="container mx-auto p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+            <Button onClick={handleRefresh} variant="outline" className="border-gray-600">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh Data
+            </Button>
+          </div>
+
           <Tabs defaultValue="content" className="space-y-6">
             <TabsList className="bg-gray-800">
               <TabsTrigger value="content">Content Management</TabsTrigger>

@@ -77,37 +77,55 @@ export const useAdminData = () => {
   const loadAllData = async () => {
     try {
       setLoading(true);
+      console.log('Loading all data from database...');
       
-      // Load site content
+      // Load site content first
       const siteContent = await getSiteContent();
+      console.log('Site content from database:', siteContent);
       if (siteContent && typeof siteContent === 'object') {
         setContent(prevContent => ({ ...prevContent, ...siteContent }));
+        console.log('Site content updated in state');
       }
 
       // Load blogs
       const blogsData = await getAllBlogs();
+      console.log('Blogs from database:', blogsData);
       setBlogs(blogsData);
 
       // Load screenshots
       const screenshotsData = await getScreenshots();
+      console.log('Screenshots from database:', screenshotsData);
       setScreenshots(screenshotsData);
 
-      // Load media files
+      // Load media files and merge with content
       const mediaFiles = await getMediaFiles();
+      console.log('Media files from database:', mediaFiles);
+      
       const mediaMap: Partial<SiteContent> = {};
       mediaFiles.forEach(file => {
-        if (file.file_type === 'header_logo') {
+        console.log('Processing media file:', file.file_type, file.file_url);
+        if (file.file_type === 'header_logo' && file.file_url) {
           mediaMap.headerLogo = file.file_url;
-        } else if (file.file_type === 'hero_background') {
+        } else if (file.file_type === 'hero_background' && file.file_url) {
           mediaMap.heroBackgroundImage = file.file_url;
-        } else if (file.file_type === 'hero_foreground') {
+        } else if (file.file_type === 'hero_foreground' && file.file_url) {
           mediaMap.heroForegroundLogo = file.file_url;
         }
       });
       
+      console.log('Media map to apply:', mediaMap);
       if (Object.keys(mediaMap).length > 0) {
-        setContent(prevContent => ({ ...prevContent, ...mediaMap }));
+        setContent(prevContent => {
+          const updatedContent = { ...prevContent, ...mediaMap };
+          console.log('Updated content with media files:', updatedContent);
+          return updatedContent;
+        });
       }
+      
+      toast({
+        title: "Data loaded",
+        description: "All data has been loaded from the database successfully.",
+      });
       
     } catch (error) {
       console.error('Error loading data:', error);
@@ -119,6 +137,11 @@ export const useAdminData = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshData = async () => {
+    console.log('Refreshing data...');
+    await loadAllData();
   };
 
   useEffect(() => {
@@ -133,6 +156,7 @@ export const useAdminData = () => {
     setScreenshots,
     content,
     setContent,
-    loadAllData
+    loadAllData,
+    refreshData
   };
 };

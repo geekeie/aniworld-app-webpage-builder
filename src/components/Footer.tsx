@@ -1,117 +1,100 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAdminData } from '@/hooks/useAdminData';
 
 const Footer = () => {
-  const { t } = useLanguage();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [headerLogo, setHeaderLogo] = useState('/logo.png');
+  const { t, language } = useLanguage();
+  const { content } = useAdminData();
 
-  useEffect(() => {
-    // Load header logo from localStorage to sync with navbar
-    const savedContent = localStorage.getItem('siteContent');
-    if (savedContent) {
-      const parsedContent = JSON.parse(savedContent);
-      if (parsedContent.headerLogo) {
-        setHeaderLogo(parsedContent.headerLogo);
-      }
-    }
-  }, []);
+  console.log('Footer received content:', content);
+  console.log('Footer logo:', content.headerLogo);
 
-  const scrollToDownload = () => {
-    // If we're not on the homepage, navigate to homepage first
-    if (location.pathname !== '/') {
-      navigate('/', { replace: true });
-      // Use setTimeout to ensure navigation completes before scrolling
-      setTimeout(() => {
-        const element = document.getElementById('download');
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    } else {
-      // We're already on homepage, just scroll
-      const element = document.getElementById('download');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  };
+  const currentYear = new Date().getFullYear();
+
+  const footerLinks = [
+    { href: '/privacy', label: language === 'de' ? 'Datenschutz' : 'Privacy Policy' },
+    { href: '/dmca', label: 'DMCA' },
+    { href: '/about', label: language === 'de' ? 'Über uns' : 'About Us' },
+    { href: '/contact', label: language === 'de' ? 'Kontakt' : 'Contact' },
+  ];
 
   return (
-    <footer className="bg-anime-darker border-t border-gray-800">
-      {/* Final CTA Section */}
-      <div className="py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h3 className="text-3xl md:text-4xl font-bold mb-4">
-            <span className="text-gradient">Ready to start watching?</span>
-          </h3>
-          <p className="text-xl text-gray-300 mb-8">
-            Join millions of anime fans worldwide
-          </p>
-          <Button 
-            onClick={scrollToDownload}
-            className="btn-anime text-lg px-8 py-4"
-            size="lg"
-          >
-            <Download className="mr-2 h-5 w-5" />
-            {t('hero.download')}
-          </Button>
-        </div>
-      </div>
-
-      {/* Footer Info */}
-      <div className="border-t border-gray-800 py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
-                {headerLogo && headerLogo !== '/logo.png' ? (
-                  <img src={headerLogo} alt="AniWorld Logo" className="w-full h-full object-contain" />
-                ) : (
-                  <div className="w-8 h-8 bg-anime-gradient rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">A</span>
-                  </div>
-                )}
-              </div>
-              <span className="text-white font-bold text-xl">AniWorld App</span>
+    <footer className="bg-anime-darker py-12 border-t border-gray-800">
+      <div className="container mx-auto px-4">
+        <div className="grid md:grid-cols-4 gap-8">
+          {/* Logo and Description */}
+          <div className="md:col-span-2">
+            <div className="flex items-center mb-4">
+              {content.headerLogo ? (
+                <img 
+                  src={content.headerLogo} 
+                  alt="AniWorld App"
+                  className="h-8 w-auto object-contain mr-3"
+                  onError={(e) => {
+                    console.error('Footer logo failed to load:', content.headerLogo);
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                  onLoad={() => {
+                    console.log('Footer logo loaded successfully:', content.headerLogo);
+                  }}
+                />
+              ) : (
+                <div className="text-xl font-bold text-gradient mr-3">AniWorld</div>
+              )}
             </div>
-            
-            <div className="text-center md:text-right">
-              <p className="text-gray-400 text-sm">© 2025 AniWorld App. All rights reserved.</p>
-              <p className="text-gray-500 text-xs mt-1">For entertainment purposes only. Updated for 2025.</p>
-              <div className="mt-2 flex flex-wrap justify-center md:justify-end gap-4">
-                <Link 
-                  to="/privacy" 
-                  className="text-gray-400 hover:text-white text-xs transition-colors"
-                >
-                  Privacy Policy
-                </Link>
-                <Link 
-                  to="/dmca" 
-                  className="text-gray-400 hover:text-white text-xs transition-colors"
-                >
-                  DMCA Policy
-                </Link>
-                <Link 
-                  to="/about" 
-                  className="text-gray-400 hover:text-white text-xs transition-colors"
-                >
-                  About Us
-                </Link>
-                <Link 
-                  to="/contact" 
-                  className="text-gray-400 hover:text-white text-xs transition-colors"
-                >
-                  Contact Us
-                </Link>
-              </div>
-            </div>
+            <p className="text-gray-400 mb-4">
+              {language === 'de' 
+                ? 'Die beste kostenlose Anime-Streaming-App für Android. Tausende von Anime-Serien und Filmen in HD-Qualität.'
+                : 'The best free anime streaming app for Android. Thousands of anime series and movies in HD quality.'
+              }
+            </p>
+            <p className="text-sm text-gray-500">
+              © {currentYear} AniWorld App. {language === 'de' ? 'Alle Rechte vorbehalten.' : 'All rights reserved.'}
+            </p>
           </div>
+
+          {/* Quick Links */}
+          <div>
+            <h3 className="text-white font-bold mb-4">
+              {language === 'de' ? 'Schnelle Links' : 'Quick Links'}
+            </h3>
+            <ul className="space-y-2">
+              <li><a href="#home" className="text-gray-400 hover:text-white transition-colors">{t('nav.home')}</a></li>
+              <li><a href="#features" className="text-gray-400 hover:text-white transition-colors">{t('nav.features')}</a></li>
+              <li><a href="#download" className="text-gray-400 hover:text-white transition-colors">{t('nav.download')}</a></li>
+              <li><a href="#faq" className="text-gray-400 hover:text-white transition-colors">{t('nav.faq')}</a></li>
+            </ul>
+          </div>
+
+          {/* Legal Links */}
+          <div>
+            <h3 className="text-white font-bold mb-4">
+              {language === 'de' ? 'Rechtliches' : 'Legal'}
+            </h3>
+            <ul className="space-y-2">
+              {footerLinks.map((link, index) => (
+                <li key={index}>
+                  <a 
+                    href={link.href} 
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-8 pt-8 border-t border-gray-700 text-center">
+          <p className="text-gray-500 text-sm">
+            {language === 'de' 
+              ? 'AniWorld App ist nicht mit offiziellen Anime-Distributoren verbunden. Alle Inhalte werden von Drittanbietern bereitgestellt.'
+              : 'AniWorld App is not affiliated with official anime distributors. All content is provided by third-party sources.'
+            }
+          </p>
         </div>
       </div>
     </footer>

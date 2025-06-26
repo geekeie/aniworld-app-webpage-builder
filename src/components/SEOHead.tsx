@@ -1,120 +1,48 @@
 
+import React from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useEffect } from 'react';
+import { useAdminData } from '@/hooks/useAdminData';
 
 const SEOHead = () => {
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
+  const { content } = useAdminData();
 
-  useEffect(() => {
-    // Update title and meta description
-    document.title = t('site.title');
-    
-    // Update meta description
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', t('site.description'));
-    }
+  console.log('SEOHead received content:', content);
 
-    // Add structured data for SoftwareApplication
-    const softwareSchema = {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "AniWorld App",
-      "applicationCategory": "Entertainment",
-      "operatingSystem": "Android",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "EUR"
-      },
-      "downloadUrl": "https://aniworldapp.de/download",
-      "description": t('site.description'),
-      "softwareVersion": "2.1.0",
-      "fileSize": "25MB",
-      "requiresMemory": "Android 5.0+",
-      "screenshot": "https://aniworldapp.de/screenshot.jpg"
-    };
+  const metaTitle = content.metaTitle || (language === 'de' 
+    ? 'AniWorld App – Kostenlose Anime Streaming APK für Android'
+    : 'AniWorld App – Free Anime Streaming APK for Android');
 
-    // Add FAQ structured data
-    const faqSchema = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": t('faq.q1'),
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": t('faq.a1')
-          }
-        },
-        {
-          "@type": "Question",
-          "name": t('faq.q2'),
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": t('faq.a2')
-          }
-        },
-        {
-          "@type": "Question",
-          "name": t('faq.q3'),
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": t('faq.a3')
-          }
-        },
-        {
-          "@type": "Question",
-          "name": t('faq.q4'),
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": t('faq.a4')
-          }
-        }
-      ]
-    };
+  const metaDescription = content.metaDescription || (language === 'de'
+    ? 'Lade die AniWorld App kostenlos herunter und streame Anime-Serien & Filme gratis auf Android. HD, schnelle Server, kein Abo!'
+    : 'Download AniWorld App for free and stream anime series & movies for free on Android. HD, fast servers, no subscription!');
 
-    // Remove existing structured data
-    const existingScripts = document.querySelectorAll('script[type="application/ld+json"]');
-    existingScripts.forEach(script => script.remove());
-
-    // Add new structured data
-    const softwareScript = document.createElement('script');
-    softwareScript.type = 'application/ld+json';
-    softwareScript.text = JSON.stringify(softwareSchema);
-    document.head.appendChild(softwareScript);
-
-    const faqScript = document.createElement('script');
-    faqScript.type = 'application/ld+json';
-    faqScript.text = JSON.stringify(faqSchema);
-    document.head.appendChild(faqScript);
-
-    // Update alternate language links
-    const existingAlternates = document.querySelectorAll('link[rel="alternate"]');
-    existingAlternates.forEach(link => link.remove());
-
-    const deLink = document.createElement('link');
-    deLink.rel = 'alternate';
-    deLink.hreflang = 'de';
-    deLink.href = 'https://aniworldapp.de/';
-    document.head.appendChild(deLink);
-
-    const enLink = document.createElement('link');
-    enLink.rel = 'alternate';
-    enLink.hreflang = 'en';
-    enLink.href = 'https://aniworldapp.de/en/';
-    document.head.appendChild(enLink);
-
-    const xDefaultLink = document.createElement('link');
-    xDefaultLink.rel = 'alternate';
-    xDefaultLink.hreflang = 'x-default';
-    xDefaultLink.href = 'https://aniworldapp.de/';
-    document.head.appendChild(xDefaultLink);
-
-  }, [language, t]);
-
-  return null;
+  return (
+    <Helmet>
+      <title>{metaTitle}</title>
+      <meta name="description" content={metaDescription} />
+      <meta name="keywords" content="anime app, free anime, android app, anime streaming, anime download, aniworld" />
+      <meta name="author" content="AniWorld Team" />
+      <meta name="robots" content="index, follow" />
+      
+      {/* Open Graph tags */}
+      <meta property="og:title" content={metaTitle} />
+      <meta property="og:description" content={metaDescription} />
+      <meta property="og:type" content="website" />
+      <meta property="og:image" content={content.heroBackgroundImage || '/hero-image.png'} />
+      
+      {/* Twitter Card tags */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={metaTitle} />
+      <meta name="twitter:description" content={metaDescription} />
+      <meta name="twitter:image" content={content.heroBackgroundImage || '/hero-image.png'} />
+      
+      {/* Language and locale */}
+      <meta property="og:locale" content={language === 'de' ? 'de_DE' : 'en_US'} />
+      <meta httpEquiv="content-language" content={language} />
+    </Helmet>
+  );
 };
 
 export default SEOHead;

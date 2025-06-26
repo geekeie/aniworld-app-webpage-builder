@@ -1,165 +1,111 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Download, Menu, X } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { useAdminData } from '@/hooks/useAdminData';
 
 const Navbar = () => {
-  const { t } = useLanguage();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [headerLogo, setHeaderLogo] = useState('/logo.png');
-  const location = useLocation();
+  const { t, language, setLanguage } = useLanguage();
+  const [isOpen, setIsOpen] = useState(false);
+  const { content } = useAdminData();
 
-  useEffect(() => {
-    // Load header logo from localStorage
-    const savedContent = localStorage.getItem('siteContent');
-    if (savedContent) {
-      const parsedContent = JSON.parse(savedContent);
-      if (parsedContent.headerLogo) {
-        setHeaderLogo(parsedContent.headerLogo);
-      }
-    }
-  }, []);
+  console.log('Navbar received content:', content);
+  console.log('Header logo:', content.headerLogo);
 
-  const scrollToSection = (sectionId: string) => {
-    if (location.pathname !== '/') {
-      window.location.href = `/#${sectionId}`;
-      return;
-    }
-    
-    const element = document.getElementById(sectionId);
+  const navItems = [
+    { key: 'home', href: '#home' },
+    { key: 'features', href: '#features' },
+    { key: 'screenshots', href: '#screenshots' },
+    { key: 'download', href: '#download' },
+    { key: 'faq', href: '#faq' }
+  ];
+
+  const scrollToSection = (href: string) => {
+    const element = document.querySelector(href);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
-    setIsMenuOpen(false);
+    setIsOpen(false);
   };
-
-  const isHomePage = location.pathname === '/';
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-anime-darker/95 backdrop-blur-sm border-b border-gray-800">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
-              {headerLogo && headerLogo !== '/logo.png' ? (
-                <img src={headerLogo} alt="AniWorld Logo" className="w-full h-full object-contain" />
-              ) : (
-                <div className="w-8 h-8 bg-anime-gradient rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">A</span>
-                </div>
-              )}
-            </div>
-            <span className="text-white font-bold text-xl">AniWorld</span>
-          </Link>
+          <div className="flex items-center">
+            {content.headerLogo ? (
+              <img 
+                src={content.headerLogo} 
+                alt="AniWorld App"
+                className="h-8 w-auto object-contain"
+                onError={(e) => {
+                  console.error('Header logo failed to load:', content.headerLogo);
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+                onLoad={() => {
+                  console.log('Header logo loaded successfully:', content.headerLogo);
+                }}
+              />
+            ) : (
+              <div className="text-xl font-bold text-gradient">AniWorld</div>
+            )}
+          </div>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-8">
-            {isHomePage ? (
-              <button 
-                onClick={() => scrollToSection('home')}
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-6">
+            {navItems.map((item) => (
+              <button
+                key={item.key}
+                onClick={() => scrollToSection(item.href)}
                 className="text-gray-300 hover:text-white transition-colors"
               >
-                {t('nav.home')}
+                {t(`nav.${item.key}`)}
               </button>
-            ) : (
-              <Link 
-                to="/"
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                {t('nav.home')}
-              </Link>
-            )}
-            <Link 
-              to="/blog"
-              className="text-gray-300 hover:text-white transition-colors"
+            ))}
+            <Button
+              onClick={() => setLanguage(language === 'de' ? 'en' : 'de')}
+              variant="outline"
+              size="sm"
+              className="border-gray-600 text-gray-300 hover:text-white"
             >
-              Blog
-            </Link>
-            {isHomePage ? (
-              <button 
-                onClick={() => scrollToSection('faq')}
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                {t('nav.faq')}
-              </button>
-            ) : (
-              <Link 
-                to="/#faq"
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                {t('nav.faq')}
-              </Link>
-            )}
-            <Button 
-              onClick={() => scrollToSection('download')}
-              className="btn-anime"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              {t('nav.download')}
+              {language === 'de' ? 'EN' : 'DE'}
             </Button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden text-white"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-gray-300 hover:text-white"
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
 
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-800">
-            <div className="flex flex-col space-y-4">
-              {isHomePage ? (
-                <button 
-                  onClick={() => scrollToSection('home')}
-                  className="text-gray-300 hover:text-white transition-colors text-left"
+        {/* Mobile Navigation */}
+        {isOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-anime-darker border-t border-gray-800">
+              {navItems.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => scrollToSection(item.href)}
+                  className="block px-3 py-2 text-gray-300 hover:text-white transition-colors w-full text-left"
                 >
-                  {t('nav.home')}
+                  {t(`nav.${item.key}`)}
                 </button>
-              ) : (
-                <Link 
-                  to="/"
-                  className="text-gray-300 hover:text-white transition-colors text-left"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {t('nav.home')}
-                </Link>
-              )}
-              <Link 
-                to="/blog"
-                className="text-gray-300 hover:text-white transition-colors text-left"
-                onClick={() => setIsMenuOpen(false)}
+              ))}
+              <Button
+                onClick={() => setLanguage(language === 'de' ? 'en' : 'de')}
+                variant="outline"
+                size="sm"
+                className="border-gray-600 text-gray-300 hover:text-white ml-3 mt-2"
               >
-                Blog
-              </Link>
-              {isHomePage ? (
-                <button 
-                  onClick={() => scrollToSection('faq')}
-                  className="text-gray-300 hover:text-white transition-colors text-left"
-                >
-                  {t('nav.faq')}
-                </button>
-              ) : (
-                <Link 
-                  to="/#faq"
-                  className="text-gray-300 hover:text-white transition-colors text-left"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {t('nav.faq')}
-                </Link>
-              )}
-              <Button 
-                onClick={() => scrollToSection('download')}
-                className="btn-anime w-full justify-center"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                {t('nav.download')}
+                {language === 'de' ? 'EN' : 'DE'}
               </Button>
             </div>
           </div>

@@ -1,37 +1,23 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Download, Star } from 'lucide-react';
 
-const Hero = () => {
-  const { t, language } = useLanguage();
-  const [content, setContent] = useState({
-    heroTitle: language === 'de' ? 'Streame Anime kostenlos mit der AniWorld App' : 'Stream Anime for Free with AniWorld App',
-    heroSubtitle: language === 'de' ? 'Entdecke tausende Anime-Serien und Filme in HD-Qualität. Kostenlos, ohne Registrierung und ohne Werbung.' : 'Discover thousands of anime series and movies in HD quality. Free, without registration and without ads.',
-    downloadButtonText: language === 'de' ? 'Jetzt herunterladen' : 'Download Now',
-    heroBackgroundImage: '/hero-image.png',
-    heroForegroundLogo: '',
-    appRating: 4.8,
-    totalRatings: 12543
-  });
+interface HeroProps {
+  content: {
+    heroTitle: string;
+    heroSubtitle: string;
+    downloadButtonText: string;
+    heroBackgroundImage: string;
+    heroForegroundLogo: string;
+    appRating: number;
+    totalRatings: number;
+  };
+}
 
-  useEffect(() => {
-    // Load admin-configured content
-    const savedContent = localStorage.getItem('siteContent');
-    if (savedContent) {
-      const parsedContent = JSON.parse(savedContent);
-      setContent({
-        heroTitle: parsedContent.heroTitle || (language === 'de' ? 'Streame Anime kostenlos mit der AniWorld App' : 'Stream Anime for Free with AniWorld App'),
-        heroSubtitle: parsedContent.heroSubtitle || (language === 'de' ? 'Entdecke tausende Anime-Serien und Filme in HD-Qualität. Kostenlos, ohne Registrierung und ohne Werbung.' : 'Discover thousands of anime series and movies in HD quality. Free, without registration and without ads.'),
-        downloadButtonText: parsedContent.downloadButtonText || (language === 'de' ? 'Jetzt herunterladen' : 'Download Now'),
-        heroBackgroundImage: parsedContent.heroBackgroundImage || '/hero-image.png',
-        heroForegroundLogo: parsedContent.heroForegroundLogo || '',
-        appRating: parsedContent.appRating || 4.8,
-        totalRatings: parsedContent.totalRatings || 12543
-      });
-    }
-  }, [language]);
+const Hero = ({ content }: HeroProps) => {
+  const { t, language } = useLanguage();
 
   const scrollToDownload = () => {
     const element = document.getElementById('download');
@@ -60,6 +46,10 @@ const Hero = () => {
 
     return stars;
   };
+
+  console.log('Hero component received content:', content);
+  console.log('Hero background image:', content.heroBackgroundImage);
+  console.log('Hero foreground logo:', content.heroForegroundLogo);
 
   return (
     <section id="home" className="pt-20 pb-16 min-h-screen flex items-center">
@@ -119,7 +109,7 @@ const Hero = () => {
               <div 
                 className="w-80 h-96 rounded-3xl shadow-2xl border border-gray-700 p-6 animate-float relative overflow-hidden"
                 style={{
-                  backgroundImage: `url(${content.heroBackgroundImage})`,
+                  backgroundImage: content.heroBackgroundImage ? `url(${content.heroBackgroundImage})` : `url(/hero-image.png)`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat'
@@ -137,6 +127,14 @@ const Hero = () => {
                           src={content.heroForegroundLogo} 
                           alt="AniWorld App Logo"
                           className="w-full h-full object-contain"
+                          onError={(e) => {
+                            console.error('Hero foreground logo failed to load:', content.heroForegroundLogo);
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                          onLoad={() => {
+                            console.log('Hero foreground logo loaded successfully:', content.heroForegroundLogo);
+                          }}
                         />
                       </div>
                     ) : (

@@ -111,9 +111,21 @@ export const useAdminData = () => {
         setBlogs(blogsData);
       }
 
-      // Update screenshots
+      // Update screenshots with validation and debugging
       if (Array.isArray(screenshotsData)) {
-        setScreenshots(screenshotsData);
+        console.log('Raw screenshots data from database:', screenshotsData);
+        
+        // Validate and process screenshots
+        const validatedScreenshots = screenshotsData.map(screenshot => {
+          console.log('Processing screenshot:', screenshot);
+          return {
+            ...screenshot,
+            image_url: screenshot.image_url || ''
+          };
+        });
+        
+        console.log('Processed screenshots:', validatedScreenshots);
+        setScreenshots(validatedScreenshots);
       }
 
       // Process media files with proper URL validation
@@ -125,7 +137,7 @@ export const useAdminData = () => {
               file.file_url.trim() !== '' && 
               file.file_url !== 'undefined' && 
               file.file_url !== 'null' &&
-              (file.file_url.startsWith('http') || file.file_url.startsWith('data:'))) {
+              (file.file_url.startsWith('http') || file.file_url.startsWith('https') || file.file_url.startsWith('data:'))) {
             
             if (file.file_type === 'header_logo') {
               mediaMap.headerLogo = file.file_url;

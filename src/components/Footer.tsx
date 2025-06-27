@@ -6,7 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 const Footer = () => {
   const { t, language } = useLanguage();
-  const { content, loading } = useAdminData();
+  const { content, loading, screenshots } = useAdminData();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,6 +18,14 @@ const Footer = () => {
     { href: '/about', label: language === 'de' ? 'Über uns' : 'About Us' },
     { href: '/contact', label: language === 'de' ? 'Kontakt' : 'Contact' },
   ];
+
+  // Check if there are valid images to show the images nav item
+  const hasValidImages = screenshots && screenshots.length > 0 && screenshots.some(screenshot => {
+    if (!screenshot.image_url) return false;
+    const url = screenshot.image_url.trim();
+    if (url === '' || url === 'undefined' || url === 'null') return false;
+    return url.startsWith('http') || url.startsWith('https') || url.startsWith('data:image/');
+  });
 
   // Helper function to get navigation text
   const getNavText = (key: string) => {
@@ -121,7 +129,9 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><button onClick={() => scrollToSection('#home')} className="text-gray-400 hover:text-white transition-colors">{getNavText('home')}</button></li>
               <li><button onClick={() => scrollToSection('#features')} className="text-gray-400 hover:text-white transition-colors">{getNavText('features')}</button></li>
-              <li><button onClick={() => scrollToSection('#images')} className="text-gray-400 hover:text-white transition-colors">{getNavText('images')}</button></li>
+              {hasValidImages && (
+                <li><button onClick={() => scrollToSection('#images')} className="text-gray-400 hover:text-white transition-colors">{getNavText('images')}</button></li>
+              )}
               <li><button onClick={() => scrollToSection('#download')} className="text-gray-400 hover:text-white transition-colors">{getNavText('download')}</button></li>
               <li><button onClick={() => scrollToSection('#faq')} className="text-gray-400 hover:text-white transition-colors">{getNavText('faq')}</button></li>
             </ul>

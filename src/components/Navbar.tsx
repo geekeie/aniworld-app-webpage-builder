@@ -9,17 +9,34 @@ import { useNavigate, useLocation } from 'react-router-dom';
 const Navbar = () => {
   const { t, language, setLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
-  const { content, loading } = useAdminData();
+  const { content, loading, screenshots } = useAdminData();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const navItems = [
+  // Check if there are valid images to show the images nav item
+  const hasValidImages = screenshots && screenshots.length > 0 && screenshots.some(screenshot => {
+    if (!screenshot.image_url) return false;
+    const url = screenshot.image_url.trim();
+    if (url === '' || url === 'undefined' || url === 'null') return false;
+    return url.startsWith('http') || url.startsWith('https') || url.startsWith('data:image/');
+  });
+
+  // Base nav items that are always shown
+  const baseNavItems = [
     { key: 'home', href: '#home' },
     { key: 'features', href: '#features' },
-    { key: 'images', href: '#images' },
+  ];
+
+  // Conditionally add images nav item
+  const conditionalNavItems = hasValidImages ? [{ key: 'images', href: '#images' }] : [];
+
+  // Always shown nav items at the end
+  const endNavItems = [
     { key: 'download', href: '#download' },
     { key: 'faq', href: '#faq' }
   ];
+
+  const navItems = [...baseNavItems, ...conditionalNavItems, ...endNavItems];
 
   const scrollToSection = (href: string) => {
     // If not on homepage, navigate to homepage first

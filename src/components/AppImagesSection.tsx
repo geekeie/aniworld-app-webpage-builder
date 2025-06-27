@@ -12,14 +12,19 @@ const AppImagesSection = () => {
     return null;
   }
 
-  // Filter out screenshots with invalid URLs
-  const validImages = screenshots.filter(screenshot => 
-    screenshot.image_url && 
-    screenshot.image_url.trim() !== '' &&
-    screenshot.image_url !== 'undefined' &&
-    screenshot.image_url !== 'null' &&
-    (screenshot.image_url.startsWith('http') || screenshot.image_url.startsWith('data:'))
-  );
+  // Filter out screenshots with invalid URLs - more permissive validation
+  const validImages = screenshots.filter(screenshot => {
+    if (!screenshot.image_url) return false;
+    
+    const url = screenshot.image_url.trim();
+    if (url === '' || url === 'undefined' || url === 'null') return false;
+    
+    // Allow both HTTP URLs and base64 data URLs
+    return url.startsWith('http') || url.startsWith('https') || url.startsWith('data:image/');
+  });
+
+  console.log('Screenshots data:', screenshots);
+  console.log('Valid images:', validImages);
 
   // Don't render the section if there are no valid images
   if (validImages.length === 0) {
@@ -52,6 +57,22 @@ const AppImagesSection = () => {
                   alt={image.alt_text || (language === 'de' ? 'App Bild' : 'App Image')}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   loading="lazy"
+                  onLoad={() => {
+                    console.log('Image loaded successfully:', image.image_url.substring(0, 50) + '...');
+                  }}
+                  onError={(e) => {
+                    console.error('Image failed to load:', image.image_url);
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    // Show a placeholder or error message
+                    const parent = target.parentElement;
+                    if (parent && !parent.querySelector('.error-placeholder')) {
+                      const errorDiv = document.createElement('div');
+                      errorDiv.className = 'error-placeholder absolute inset-0 flex items-center justify-center bg-gray-800 text-gray-400';
+                      errorDiv.innerHTML = '<div class="text-center"><div class="text-4xl mb-2">🖼️</div><div>Image failed to load</div></div>';
+                      parent.appendChild(errorDiv);
+                    }
+                  }}
                 />
                 {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

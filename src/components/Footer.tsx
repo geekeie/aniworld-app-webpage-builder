@@ -19,6 +19,28 @@ const Footer = () => {
     { href: '/contact', label: language === 'de' ? 'Kontakt' : 'Contact' },
   ];
 
+  // Helper function to get navigation text
+  const getNavText = (key: string) => {
+    const translations: Record<string, Record<string, string>> = {
+      en: {
+        home: 'Home',
+        features: 'Features', 
+        screenshots: 'Screenshots',
+        download: 'Download',
+        faq: 'FAQ'
+      },
+      de: {
+        home: 'Startseite',
+        features: 'Features',
+        screenshots: 'Screenshots', 
+        download: 'Download',
+        faq: 'FAQ'
+      }
+    };
+    
+    return translations[language]?.[key] || key;
+  };
+
   return (
     <footer className="bg-anime-darker py-12 border-t border-gray-800">
       <div className="container mx-auto px-4">
@@ -26,7 +48,7 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="md:col-span-2">
             <div className="flex items-center mb-4">
-              {content.headerLogo ? (
+              {content.headerLogo && content.headerLogo.trim() !== '' ? (
                 <img 
                   src={content.headerLogo} 
                   alt="AniWorld App"
@@ -35,6 +57,14 @@ const Footer = () => {
                     console.error('Footer logo failed to load:', content.headerLogo);
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
+                    // Show fallback text
+                    const parent = target.parentElement;
+                    if (parent) {
+                      const fallback = document.createElement('div');
+                      fallback.className = 'text-xl font-bold text-gradient mr-3';
+                      fallback.textContent = 'AniWorld';
+                      parent.appendChild(fallback);
+                    }
                   }}
                   onLoad={() => {
                     console.log('Footer logo loaded successfully:', content.headerLogo);
@@ -61,10 +91,10 @@ const Footer = () => {
               {language === 'de' ? 'Schnelle Links' : 'Quick Links'}
             </h3>
             <ul className="space-y-2">
-              <li><a href="#home" className="text-gray-400 hover:text-white transition-colors">{t('nav.home')}</a></li>
-              <li><a href="#features" className="text-gray-400 hover:text-white transition-colors">{t('nav.features')}</a></li>
-              <li><a href="#download" className="text-gray-400 hover:text-white transition-colors">{t('nav.download')}</a></li>
-              <li><a href="#faq" className="text-gray-400 hover:text-white transition-colors">{t('nav.faq')}</a></li>
+              <li><a href="#home" className="text-gray-400 hover:text-white transition-colors">{getNavText('home')}</a></li>
+              <li><a href="#features" className="text-gray-400 hover:text-white transition-colors">{getNavText('features')}</a></li>
+              <li><a href="#download" className="text-gray-400 hover:text-white transition-colors">{getNavText('download')}</a></li>
+              <li><a href="#faq" className="text-gray-400 hover:text-white transition-colors">{getNavText('faq')}</a></li>
             </ul>
           </div>
 

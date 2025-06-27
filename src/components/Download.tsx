@@ -1,45 +1,48 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Download as DownloadIcon, Shield, Smartphone, Zap } from 'lucide-react';
+import { useAdminData } from '@/hooks/useAdminData';
 
 const Download = () => {
-  const { t } = useLanguage();
-  const [content, setContent] = useState({
-    appName: 'AniWorld APK',
-    appVersion: 'Version 3.2.1',
-    appSize: '25 MB',
-    appRequirements: 'Android 5.0+',
-    downloadButtonText: 'Jetzt herunterladen',
-    downloadUrl: ''
-  });
+  const { language } = useLanguage();
+  const { content } = useAdminData();
 
-  useEffect(() => {
-    // Load content from localStorage
-    const savedContent = localStorage.getItem('siteContent');
-    if (savedContent) {
-      const parsedContent = JSON.parse(savedContent);
-      setContent({
-        appName: parsedContent.appName || content.appName,
-        appVersion: parsedContent.appVersion || content.appVersion,
-        appSize: parsedContent.appSize || content.appSize,
-        appRequirements: parsedContent.appRequirements || content.appRequirements,
-        downloadButtonText: parsedContent.downloadButtonText || content.downloadButtonText,
-        downloadUrl: parsedContent.downloadUrl || content.downloadUrl
-      });
-    }
-  }, []);
+  console.log('Download component content:', content);
+  console.log('Download URL:', content.downloadUrl);
 
   const handleDownload = () => {
-    if (content.downloadUrl) {
+    if (content.downloadUrl && content.downloadUrl.trim() !== '') {
       // Open the download URL in a new tab
       window.open(content.downloadUrl, '_blank');
       console.log('Download initiated for:', content.downloadUrl);
     } else {
       console.log('No download URL configured');
+      alert(language === 'de' 
+        ? 'Download-URL ist noch nicht konfiguriert. Bitte kontaktieren Sie den Administrator.'
+        : 'Download URL is not configured yet. Please contact the administrator.'
+      );
     }
+  };
+
+  // Helper function to get text
+  const getText = (key: string) => {
+    const translations: Record<string, Record<string, string>> = {
+      en: {
+        title: 'Download AniWorld App',
+        subtitle: 'Get the best anime streaming experience on your Android device',
+        buttonText: 'Download Now'
+      },
+      de: {
+        title: 'AniWorld App herunterladen',
+        subtitle: 'Holen Sie sich das beste Anime-Streaming-Erlebnis auf Ihr Android-Gerät',
+        buttonText: 'Jetzt herunterladen'
+      }
+    };
+    
+    return translations[language]?.[key] || key;
   };
 
   return (
@@ -48,9 +51,9 @@ const Download = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="text-gradient">{t('download.title')}</span>
+              <span className="text-gradient">{getText('title')}</span>
             </h2>
-            <p className="text-xl text-gray-300 mb-8">{t('download.subtitle')}</p>
+            <p className="text-xl text-gray-300 mb-8">{getText('subtitle')}</p>
           </div>
 
           <Card className="card-anime overflow-hidden">
@@ -80,32 +83,38 @@ const Download = () => {
 
                     <Button 
                       onClick={handleDownload}
-                      className="btn-anime w-full text-lg py-6 mb-6"
+                      className={`w-full text-lg py-6 mb-6 ${
+                        content.downloadUrl && content.downloadUrl.trim() !== '' 
+                          ? 'btn-anime' 
+                          : 'bg-gray-600 text-gray-300 cursor-not-allowed hover:bg-gray-600'
+                      }`}
                       size="lg"
-                      disabled={!content.downloadUrl}
                     >
                       <DownloadIcon className="mr-2 h-5 w-5" />
-                      {content.downloadButtonText}
+                      {content.downloadButtonText || getText('buttonText')}
                     </Button>
 
-                    {!content.downloadUrl && (
-                      <p className="text-sm text-gray-500 text-center mb-6">
-                        Download URL not configured
+                    {(!content.downloadUrl || content.downloadUrl.trim() === '') && (
+                      <p className="text-sm text-yellow-500 text-center mb-6">
+                        {language === 'de' 
+                          ? 'Download-URL noch nicht konfiguriert'
+                          : 'Download URL not configured yet'
+                        }
                       </p>
                     )}
 
                     <div className="flex items-center gap-4 text-sm text-gray-400">
                       <div className="flex items-center gap-2">
                         <Shield className="h-4 w-4 text-green-400" />
-                        <span>Virus-free</span>
+                        <span>{language === 'de' ? 'Virenfrei' : 'Virus-free'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Zap className="h-4 w-4 text-yellow-400" />
-                        <span>Fast Download</span>
+                        <span>{language === 'de' ? 'Schneller Download' : 'Fast Download'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Smartphone className="h-4 w-4 text-blue-400" />
-                        <span>Android Only</span>
+                        <span>{language === 'de' ? 'Nur Android' : 'Android Only'}</span>
                       </div>
                     </div>
                   </div>
@@ -117,8 +126,12 @@ const Download = () => {
                     <div className="w-32 h-32 bg-white/20 rounded-full mx-auto mb-6 flex items-center justify-center animate-pulse">
                       <DownloadIcon className="h-16 w-16" />
                     </div>
-                    <h4 className="text-2xl font-bold mb-2">Ready to Download</h4>
-                    <p className="opacity-90">Get started in seconds</p>
+                    <h4 className="text-2xl font-bold mb-2">
+                      {language === 'de' ? 'Bereit zum Download' : 'Ready to Download'}
+                    </h4>
+                    <p className="opacity-90">
+                      {language === 'de' ? 'In Sekunden bereit' : 'Get started in seconds'}
+                    </p>
                   </div>
                 </div>
               </div>

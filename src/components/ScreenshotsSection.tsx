@@ -14,41 +14,35 @@ const ScreenshotsSection = () => {
   const { language } = useLanguage();
   const [screenshots, setScreenshots] = useState<AppScreenshot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadScreenshots = async () => {
       try {
         setLoading(true);
+        setError(null);
         console.log('Loading screenshots from database...');
         const screenshotsData = await getScreenshots();
         console.log('Loaded screenshots from database:', screenshotsData);
         
         if (screenshotsData && screenshotsData.length > 0) {
-          setScreenshots(screenshotsData);
+          // Filter out screenshots with invalid URLs
+          const validScreenshots = screenshotsData.filter(screenshot => 
+            screenshot.image_url && 
+            screenshot.image_url.trim() !== '' &&
+            screenshot.image_url !== 'undefined' &&
+            screenshot.image_url !== 'null'
+          );
+          setScreenshots(validScreenshots);
+          console.log('Valid screenshots set:', validScreenshots.length);
         } else {
           console.log('No screenshots found in database');
+          setScreenshots([]);
         }
       } catch (error) {
         console.error('Error loading screenshots from database:', error);
-        // Fallback to localStorage for backwards compatibility
-        try {
-          const savedScreenshots = localStorage.getItem('aniworld_screenshots');
-          console.log('Falling back to localStorage screenshots:', savedScreenshots);
-          
-          if (savedScreenshots) {
-            const parsedScreenshots = JSON.parse(savedScreenshots);
-            // Transform legacy format to new format
-            const transformedScreenshots = parsedScreenshots.map((screenshot: any) => ({
-              id: screenshot.id,
-              image_url: screenshot.image || screenshot.image_url,
-              alt_text: screenshot.alt || screenshot.alt_text,
-              title: screenshot.title
-            }));
-            setScreenshots(transformedScreenshots);
-          }
-        } catch (localStorageError) {
-          console.error('Error loading screenshots from localStorage:', localStorageError);
-        }
+        setError('Failed to load screenshots');
+        setScreenshots([]);
       } finally {
         setLoading(false);
       }
@@ -59,10 +53,35 @@ const ScreenshotsSection = () => {
 
   if (loading) {
     return (
-      <section className="py-16 bg-anime-dark">
+      <section id="screenshots" className="py-16 bg-anime-dark">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <div className="text-white text-xl">Loading screenshots...</div>
+            <div className="text-white text-xl">
+              {language === 'de' ? 'Screenshots werden geladen...' : 'Loading screenshots...'}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section id="screenshots" className="py-16 bg-anime-dark">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="text-red-400 text-xl">
+              {language === 'de' 
+                ? 'Fehler beim Laden der Screenshots'
+                : 'Error loading screenshots'
+              }
+            </div>
+            <p className="text-gray-400 mt-2">
+              {language === 'de'
+                ? 'Bitte versuchen Sie es später erneut'
+                : 'Please try again later'
+              }
+            </p>
           </div>
         </div>
       </section>
@@ -70,14 +89,44 @@ const ScreenshotsSection = () => {
   }
 
   if (screenshots.length === 0) {
-    console.log('No screenshots to display, hiding section');
-    return null;
+    return (
+      <section id="screenshots" className="py-16 bg-anime-dark">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <span className="text-gradient">
+                {language === 'de' ? 'App Screenshots' : 'App Screenshots'}
+              </span>
+            </h2>
+            <p className="text-xl text-gray-300 mb-8">
+              {language === 'de' 
+                ? 'Screenshots werden bald hinzugefügt'
+                : 'Screenshots will be added soon'
+              }
+            </p>
+            <div className="bg-gray-800/50 rounded-lg p-8 max-w-md mx-auto">
+              <div className="text-gray-400 text-center">
+                <div className="w-16 h-16 bg-gray-700 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-2xl">📱</span>
+                </div>
+                <p>
+                  {language === 'de'
+                    ? 'Keine Screenshots verfügbar'
+                    : 'No screenshots available'
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   console.log('Rendering screenshots section with', screenshots.length, 'screenshots');
 
   return (
-    <section className="py-16 bg-anime-dark">
+    <section id="screenshots" className="py-16 bg-anime-dark">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -107,11 +156,14 @@ const ScreenshotsSection = () => {
                     onError={(e) => {
                       console.error('Image failed to load:', screenshot.image_url);
                       const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      // Show error message
                       const parent = target.parentElement;
                       if (parent) {
-                        parent.innerHTML = '<div class="flex items-center justify-center h-full text-red-400 text-sm">Image failed to load</div>';
+                        parent.innerHTML = `
+                          <div class="flex flex-col items-center justify-center h-full text-red-400 text-sm bg-gray-800">
+                            <div class="text-4xl mb-2">⚠️</div>
+                            <div>${language === 'de' ? 'Bild konnte nicht geladen werden' : 'Image failed to load'}</div>
+                          </div>
+                        `;
                       }
                     }}
                     onLoad={() => {

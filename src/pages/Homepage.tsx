@@ -10,7 +10,7 @@ import Footer from '@/components/Footer';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import SEOHead from '@/components/SEOHead';
 import BlogSectionEnhanced from '@/components/BlogSectionEnhanced';
-import ScreenshotsSection from '@/components/ScreenshotsSection';
+import AppImagesSection from '@/components/AppImagesSection';
 import CustomHeaderCode from '@/components/CustomHeaderCode';
 import ArticleContentSection from '@/components/ArticleContentSection';
 import { useAdminData } from '@/hooks/useAdminData';
@@ -27,7 +27,7 @@ const Homepage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-anime-darker flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500"></div>
       </div>
     );
   }
@@ -41,7 +41,7 @@ const Homepage = () => {
         <Hero content={content} />
         <ArticleContentSection />
         <Features />
-        <ScreenshotsSection />
+        <AppImagesSection />
         <BlogSectionEnhanced />
         <Download />
         <FAQ />

@@ -6,7 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 const Footer = () => {
   const { t, language } = useLanguage();
-  const { content } = useAdminData();
+  const { content, loading } = useAdminData();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -25,14 +25,14 @@ const Footer = () => {
       en: {
         home: 'Home',
         features: 'Features', 
-        screenshots: 'Screenshots',
+        images: 'App Images',
         download: 'Download',
         faq: 'FAQ'
       },
       de: {
         home: 'Startseite',
         features: 'Features',
-        screenshots: 'Screenshots', 
+        images: 'App Bilder', 
         download: 'Download',
         faq: 'FAQ'
       }
@@ -61,6 +61,24 @@ const Footer = () => {
     }
   };
 
+  // Get the logo URL with fallback handling
+  const getLogoUrl = () => {
+    if (loading) return null;
+    
+    // Check if headerLogo exists and is a valid URL
+    if (content.headerLogo && 
+        content.headerLogo.trim() !== '' && 
+        content.headerLogo !== 'undefined' && 
+        content.headerLogo !== 'null' &&
+        (content.headerLogo.startsWith('http') || content.headerLogo.startsWith('data:'))) {
+      return content.headerLogo;
+    }
+    
+    return null;
+  };
+
+  const logoUrl = getLogoUrl();
+
   return (
     <footer className="bg-anime-darker py-12 border-t border-gray-800">
       <div className="container mx-auto px-4">
@@ -69,12 +87,13 @@ const Footer = () => {
           <div className="md:col-span-2">
             <div className="flex items-center mb-4">
               <div className="flex items-center gap-3">
-                {content.headerLogo && content.headerLogo.trim() !== '' && (
+                {logoUrl && (
                   <img 
-                    src={content.headerLogo} 
+                    src={logoUrl} 
                     alt="AniWorld App"
                     className="h-8 w-auto object-contain"
                     onError={(e) => {
+                      console.error('Footer logo failed to load:', logoUrl);
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
                     }}
@@ -102,6 +121,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><button onClick={() => scrollToSection('#home')} className="text-gray-400 hover:text-white transition-colors">{getNavText('home')}</button></li>
               <li><button onClick={() => scrollToSection('#features')} className="text-gray-400 hover:text-white transition-colors">{getNavText('features')}</button></li>
+              <li><button onClick={() => scrollToSection('#images')} className="text-gray-400 hover:text-white transition-colors">{getNavText('images')}</button></li>
               <li><button onClick={() => scrollToSection('#download')} className="text-gray-400 hover:text-white transition-colors">{getNavText('download')}</button></li>
               <li><button onClick={() => scrollToSection('#faq')} className="text-gray-400 hover:text-white transition-colors">{getNavText('faq')}</button></li>
             </ul>

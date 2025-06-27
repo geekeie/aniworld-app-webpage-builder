@@ -9,14 +9,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 const Navbar = () => {
   const { t, language, setLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
-  const { content } = useAdminData();
+  const { content, loading } = useAdminData();
   const navigate = useNavigate();
   const location = useLocation();
 
   const navItems = [
     { key: 'home', href: '#home' },
     { key: 'features', href: '#features' },
-    { key: 'screenshots', href: '#screenshots' },
+    { key: 'images', href: '#images' },
     { key: 'download', href: '#download' },
     { key: 'faq', href: '#faq' }
   ];
@@ -48,14 +48,14 @@ const Navbar = () => {
       en: {
         home: 'Home',
         features: 'Features', 
-        screenshots: 'Screenshots',
+        images: 'App Images',
         download: 'Download',
         faq: 'FAQ'
       },
       de: {
         home: 'Startseite',
         features: 'Features',
-        screenshots: 'Screenshots', 
+        images: 'App Bilder',
         download: 'Download',
         faq: 'FAQ'
       }
@@ -64,6 +64,24 @@ const Navbar = () => {
     return translations[language]?.[key] || key;
   };
 
+  // Get the logo URL with fallback handling
+  const getLogoUrl = () => {
+    if (loading) return null;
+    
+    // Check if headerLogo exists and is a valid URL
+    if (content.headerLogo && 
+        content.headerLogo.trim() !== '' && 
+        content.headerLogo !== 'undefined' && 
+        content.headerLogo !== 'null' &&
+        (content.headerLogo.startsWith('http') || content.headerLogo.startsWith('data:'))) {
+      return content.headerLogo;
+    }
+    
+    return null;
+  };
+
+  const logoUrl = getLogoUrl();
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-anime-darker/95 backdrop-blur-sm border-b border-gray-800">
       <div className="container mx-auto px-4">
@@ -71,12 +89,13 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center">
             <div className="flex items-center gap-3">
-              {content.headerLogo && content.headerLogo.trim() !== '' && (
+              {logoUrl && (
                 <img 
-                  src={content.headerLogo} 
+                  src={logoUrl} 
                   alt="AniWorld App"
                   className="h-8 w-auto object-contain"
                   onError={(e) => {
+                    console.error('Header logo failed to load:', logoUrl);
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                   }}

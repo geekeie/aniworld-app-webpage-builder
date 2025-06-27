@@ -48,29 +48,30 @@ interface SiteContent {
   customHeaderCode: string;
 }
 
+const defaultContent: SiteContent = {
+  metaTitle: 'AniWorld App – Kostenlose Anime Streaming APK für Android',
+  metaDescription: 'Lade die AniWorld App kostenlos herunter und streame Anime-Serien & Filme gratis auf Android. HD, schnelle Server, kein Abo!',
+  heroTitle: 'Streame Anime kostenlos mit der AniWorld App',
+  heroSubtitle: 'Entdecke tausende Anime-Serien und Filme in HD-Qualität. Kostenlos, ohne Registrierung und ohne Werbung.',
+  downloadButtonText: 'Jetzt herunterladen',
+  downloadUrl: '',
+  headerLogo: '',
+  heroBackgroundImage: '/hero-image.png',
+  heroForegroundLogo: '',
+  appName: 'AniWorld APK',
+  appVersion: 'Version 3.2.1',
+  appSize: '25 MB',
+  appRequirements: 'Android 5.0+',
+  appRating: 4.8,
+  totalRatings: 12543,
+  customHeaderCode: ''
+};
+
 export const useAdminData = () => {
   const [loading, setLoading] = useState(true);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [screenshots, setScreenshots] = useState<AppScreenshot[]>([]);
-  
-  const [content, setContent] = useState<SiteContent>({
-    metaTitle: 'AniWorld App – Kostenlose Anime Streaming APK für Android',
-    metaDescription: 'Lade die AniWorld App kostenlos herunter und streame Anime-Serien & Filme gratis auf Android. HD, schnelle Server, kein Abo!',
-    heroTitle: 'Streame Anime kostenlos mit der AniWorld App',
-    heroSubtitle: 'Entdecke tausende Anime-Serien und Filme in HD-Qualität. Kostenlos, ohne Registrierung und ohne Werbung.',
-    downloadButtonText: 'Jetzt herunterladen',
-    downloadUrl: '',
-    headerLogo: '/logo.png',
-    heroBackgroundImage: '/hero-image.png',
-    heroForegroundLogo: '',
-    appName: 'AniWorld APK',
-    appVersion: 'Version 3.2.1',
-    appSize: '25 MB',
-    appRequirements: 'Android 5.0+',
-    appRating: 4.8,
-    totalRatings: 12543,
-    customHeaderCode: ''
-  });
+  const [content, setContent] = useState<SiteContent>(defaultContent);
 
   const loadAllData = async () => {
     try {
@@ -78,37 +79,67 @@ export const useAdminData = () => {
       
       // Load all data in parallel for better performance
       const [siteContent, blogsData, screenshotsData, mediaFiles] = await Promise.all([
-        getSiteContent(),
-        getAllBlogs(),
-        getScreenshots(),
-        getMediaFiles()
+        getSiteContent().catch(err => {
+          console.warn('Failed to load site content:', err);
+          return null;
+        }),
+        getAllBlogs().catch(err => {
+          console.warn('Failed to load blogs:', err);
+          return [];
+        }),
+        getScreenshots().catch(err => {
+          console.warn('Failed to load screenshots:', err);
+          return [];
+        }),
+        getMediaFiles().catch(err => {
+          console.warn('Failed to load media files:', err);
+          return [];
+        })
       ]);
       
-      // Update site content
+      // Update site content with proper fallbacks
       if (siteContent && typeof siteContent === 'object') {
-        setContent(prevContent => ({ ...prevContent, ...siteContent }));
+        setContent(prevContent => ({ 
+          ...defaultContent, 
+          ...prevContent, 
+          ...siteContent 
+        }));
       }
 
       // Update blogs
-      setBlogs(blogsData);
+      if (Array.isArray(blogsData)) {
+        setBlogs(blogsData);
+      }
 
       // Update screenshots
-      setScreenshots(screenshotsData);
+      if (Array.isArray(screenshotsData)) {
+        setScreenshots(screenshotsData);
+      }
 
-      // Process media files
+      // Process media files with proper URL validation
       const mediaMap: Partial<SiteContent> = {};
-      mediaFiles.forEach(file => {
-        if (file.file_type === 'header_logo' && file.file_url) {
-          mediaMap.headerLogo = file.file_url;
-        } else if (file.file_type === 'hero_background' && file.file_url) {
-          mediaMap.heroBackgroundImage = file.file_url;
-        } else if (file.file_type === 'hero_foreground' && file.file_url) {
-          mediaMap.heroForegroundLogo = file.file_url;
+      if (Array.isArray(mediaFiles)) {
+        mediaFiles.forEach(file => {
+          // Only process files with valid URLs
+          if (file.file_url && 
+              file.file_url.trim() !== '' && 
+              file.file_url !== 'undefined' && 
+              file.file_url !== 'null' &&
+              (file.file_url.startsWith('http') || file.file_url.startsWith('data:'))) {
+            
+            if (file.file_type === 'header_logo') {
+              mediaMap.headerLogo = file.file_url;
+            } else if (file.file_type === 'hero_background') {
+              mediaMap.heroBackgroundImage = file.file_url;
+            } else if (file.file_type === 'hero_foreground') {
+              mediaMap.heroForegroundLogo = file.file_url;
+            }
+          }
+        });
+        
+        if (Object.keys(mediaMap).length > 0) {
+          setContent(prevContent => ({ ...prevContent, ...mediaMap }));
         }
-      });
-      
-      if (Object.keys(mediaMap).length > 0) {
-        setContent(prevContent => ({ ...prevContent, ...mediaMap }));
       }
       
     } catch (error) {

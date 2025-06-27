@@ -9,7 +9,7 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import AdminSaveButton from '@/components/admin/AdminSaveButton';
 import ContentManagementTab from '@/components/admin/ContentManagementTab';
 import BlogManagementTab from '@/components/admin/BlogManagementTab';
-import ScreenshotsTab from '@/components/admin/ScreenshotsTab';
+import AppImagesTab from '@/components/admin/AppImagesTab';
 import StarRatingTab from '@/components/admin/StarRatingTab';
 import DownloadSettingsTab from '@/components/admin/DownloadSettingsTab';
 import SEOSettingsTab from '@/components/admin/SEOSettingsTab';
@@ -99,7 +99,7 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-anime-darker flex items-center justify-center">
-        <div className="text-white text-xl">Loading dashboard...</div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500"></div>
       </div>
     );
   }
@@ -127,7 +127,7 @@ const AdminDashboard = () => {
             <TabsList className="bg-gray-800">
               <TabsTrigger value="content">Content Management</TabsTrigger>
               <TabsTrigger value="blogs">Blog Management</TabsTrigger>
-              <TabsTrigger value="screenshots">Screenshots</TabsTrigger>
+              <TabsTrigger value="images">App Images</TabsTrigger>
               <TabsTrigger value="rating">Star Rating</TabsTrigger>
               <TabsTrigger value="download">Download Settings</TabsTrigger>
               <TabsTrigger value="seo">SEO Settings</TabsTrigger>
@@ -154,8 +154,8 @@ const AdminDashboard = () => {
               />
             </TabsContent>
 
-            <TabsContent value="screenshots">
-              <ScreenshotsTab
+            <TabsContent value="images">
+              <AppImagesTab
                 screenshots={screenshots}
                 setScreenshots={setScreenshots}
                 screenshotForm={screenshotForm}

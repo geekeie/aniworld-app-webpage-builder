@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import { 
   getSiteContent, 
   getAllBlogs, 
@@ -50,7 +49,6 @@ interface SiteContent {
 }
 
 export const useAdminData = () => {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [screenshots, setScreenshots] = useState<AppScreenshot[]>([]);
@@ -77,33 +75,29 @@ export const useAdminData = () => {
   const loadAllData = async () => {
     try {
       setLoading(true);
-      console.log('Loading all data from database...');
       
-      // Load site content first
-      const siteContent = await getSiteContent();
-      console.log('Site content from database:', siteContent);
+      // Load all data in parallel for better performance
+      const [siteContent, blogsData, screenshotsData, mediaFiles] = await Promise.all([
+        getSiteContent(),
+        getAllBlogs(),
+        getScreenshots(),
+        getMediaFiles()
+      ]);
+      
+      // Update site content
       if (siteContent && typeof siteContent === 'object') {
         setContent(prevContent => ({ ...prevContent, ...siteContent }));
-        console.log('Site content updated in state');
       }
 
-      // Load blogs
-      const blogsData = await getAllBlogs();
-      console.log('Blogs from database:', blogsData);
+      // Update blogs
       setBlogs(blogsData);
 
-      // Load screenshots
-      const screenshotsData = await getScreenshots();
-      console.log('Screenshots from database:', screenshotsData);
+      // Update screenshots
       setScreenshots(screenshotsData);
 
-      // Load media files and merge with content
-      const mediaFiles = await getMediaFiles();
-      console.log('Media files from database:', mediaFiles);
-      
+      // Process media files
       const mediaMap: Partial<SiteContent> = {};
       mediaFiles.forEach(file => {
-        console.log('Processing media file:', file.file_type, file.file_url);
         if (file.file_type === 'header_logo' && file.file_url) {
           mediaMap.headerLogo = file.file_url;
         } else if (file.file_type === 'hero_background' && file.file_url) {
@@ -113,34 +107,18 @@ export const useAdminData = () => {
         }
       });
       
-      console.log('Media map to apply:', mediaMap);
       if (Object.keys(mediaMap).length > 0) {
-        setContent(prevContent => {
-          const updatedContent = { ...prevContent, ...mediaMap };
-          console.log('Updated content with media files:', updatedContent);
-          return updatedContent;
-        });
+        setContent(prevContent => ({ ...prevContent, ...mediaMap }));
       }
-      
-      toast({
-        title: "Data loaded",
-        description: "All data has been loaded from the database successfully.",
-      });
       
     } catch (error) {
       console.error('Error loading data:', error);
-      toast({
-        title: "Error loading data",
-        description: "Failed to load data from database. Please try again.",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
   };
 
   const refreshData = async () => {
-    console.log('Refreshing data...');
     await loadAllData();
   };
 

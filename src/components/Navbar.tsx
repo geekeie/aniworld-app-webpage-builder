@@ -13,9 +13,6 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  console.log('Navbar received content:', content);
-  console.log('Header logo:', content.headerLogo);
-
   const navItems = [
     { key: 'home', href: '#home' },
     { key: 'features', href: '#features' },
@@ -73,37 +70,20 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            {content.headerLogo && content.headerLogo.trim() !== '' ? (
-              <img 
-                src={content.headerLogo} 
-                alt="AniWorld App"
-                className="h-8 w-auto object-contain"
-                onError={(e) => {
-                  console.error('Header logo failed to load:', content.headerLogo);
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  // Show fallback text
-                  const parent = target.parentElement;
-                  if (parent && !parent.querySelector('.fallback-logo')) {
-                    const fallback = document.createElement('div');
-                    fallback.className = 'text-xl font-bold text-gradient fallback-logo';
-                    fallback.textContent = 'AniWorld';
-                    parent.appendChild(fallback);
-                  }
-                }}
-                onLoad={() => {
-                  console.log('Header logo loaded successfully:', content.headerLogo);
-                  // Remove any fallback text if image loads successfully
-                  const parent = (document.querySelector('img[alt="AniWorld App"]') as HTMLImageElement)?.parentElement;
-                  const fallback = parent?.querySelector('.fallback-logo');
-                  if (fallback) {
-                    fallback.remove();
-                  }
-                }}
-              />
-            ) : (
+            <div className="flex items-center gap-3">
+              {content.headerLogo && content.headerLogo.trim() !== '' && (
+                <img 
+                  src={content.headerLogo} 
+                  alt="AniWorld App"
+                  className="h-8 w-auto object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
+              )}
               <div className="text-xl font-bold text-gradient">AniWorld</div>
-            )}
+            </div>
           </div>
 
           {/* Desktop Navigation */}

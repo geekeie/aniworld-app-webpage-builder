@@ -10,9 +10,6 @@ const Footer = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  console.log('Footer received content:', content);
-  console.log('Footer logo:', content.headerLogo);
-
   const currentYear = new Date().getFullYear();
 
   const footerLinks = [
@@ -71,37 +68,20 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="md:col-span-2">
             <div className="flex items-center mb-4">
-              {content.headerLogo && content.headerLogo.trim() !== '' ? (
-                <img 
-                  src={content.headerLogo} 
-                  alt="AniWorld App"
-                  className="h-8 w-auto object-contain mr-3"
-                  onError={(e) => {
-                    console.error('Footer logo failed to load:', content.headerLogo);
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    // Show fallback text
-                    const parent = target.parentElement;
-                    if (parent && !parent.querySelector('.fallback-logo')) {
-                      const fallback = document.createElement('div');
-                      fallback.className = 'text-xl font-bold text-gradient mr-3 fallback-logo';
-                      fallback.textContent = 'AniWorld';
-                      parent.appendChild(fallback);
-                    }
-                  }}
-                  onLoad={(e) => {
-                    console.log('Footer logo loaded successfully:', content.headerLogo);
-                    // Remove any fallback text if image loads successfully
-                    const parent = (e.target as HTMLImageElement).parentElement;
-                    const fallback = parent?.querySelector('.fallback-logo');
-                    if (fallback) {
-                      fallback.remove();
-                    }
-                  }}
-                />
-              ) : (
-                <div className="text-xl font-bold text-gradient mr-3">AniWorld</div>
-              )}
+              <div className="flex items-center gap-3">
+                {content.headerLogo && content.headerLogo.trim() !== '' && (
+                  <img 
+                    src={content.headerLogo} 
+                    alt="AniWorld App"
+                    className="h-8 w-auto object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                )}
+                <div className="text-xl font-bold text-gradient">AniWorld</div>
+              </div>
             </div>
             <p className="text-gray-400 mb-4">
               {language === 'de' 

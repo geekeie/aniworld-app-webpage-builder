@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
@@ -16,7 +16,7 @@ import ArticleContentSection from '@/components/ArticleContentSection';
 import { useAdminData } from '@/hooks/useAdminData';
 
 const Homepage = () => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const { content, loading } = useAdminData();
 
   useEffect(() => {

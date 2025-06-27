@@ -89,7 +89,7 @@ const Footer = () => {
                       parent.appendChild(fallback);
                     }
                   }}
-                  onLoad={() => {
+                  onLoad={(e) => {
                     console.log('Footer logo loaded successfully:', content.headerLogo);
                     // Remove any fallback text if image loads successfully
                     const parent = (e.target as HTMLImageElement).parentElement;

@@ -5,10 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Download as DownloadIcon, Shield, Smartphone, Zap } from 'lucide-react';
 import { useAdminData } from '@/hooks/useAdminData';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Download = () => {
   const { language } = useLanguage();
   const { content } = useAdminData();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   console.log('Download component content:', content);
   console.log('Download URL:', content.downloadUrl);
@@ -24,6 +27,26 @@ const Download = () => {
         ? 'Download-URL ist noch nicht konfiguriert. Bitte kontaktieren Sie den Administrator.'
         : 'Download URL is not configured yet. Please contact the administrator.'
       );
+    }
+  };
+
+  const scrollToDownload = () => {
+    // If not on homepage, navigate to homepage first
+    if (location.pathname !== '/') {
+      navigate('/');
+      // Wait for navigation to complete then scroll
+      setTimeout(() => {
+        const element = document.querySelector('#download');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      // Already on homepage, just scroll
+      const element = document.querySelector('#download');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 

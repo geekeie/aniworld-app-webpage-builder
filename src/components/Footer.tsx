@@ -2,10 +2,13 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAdminData } from '@/hooks/useAdminData';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Footer = () => {
   const { t, language } = useLanguage();
   const { content } = useAdminData();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   console.log('Footer received content:', content);
   console.log('Footer logo:', content.headerLogo);
@@ -41,6 +44,26 @@ const Footer = () => {
     return translations[language]?.[key] || key;
   };
 
+  const scrollToSection = (href: string) => {
+    // If not on homepage, navigate to homepage first
+    if (location.pathname !== '/') {
+      navigate('/');
+      // Wait for navigation to complete then scroll
+      setTimeout(() => {
+        const element = document.querySelector(href);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      // Already on homepage, just scroll
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <footer className="bg-anime-darker py-12 border-t border-gray-800">
       <div className="container mx-auto px-4">
@@ -59,15 +82,21 @@ const Footer = () => {
                     target.style.display = 'none';
                     // Show fallback text
                     const parent = target.parentElement;
-                    if (parent) {
+                    if (parent && !parent.querySelector('.fallback-logo')) {
                       const fallback = document.createElement('div');
-                      fallback.className = 'text-xl font-bold text-gradient mr-3';
+                      fallback.className = 'text-xl font-bold text-gradient mr-3 fallback-logo';
                       fallback.textContent = 'AniWorld';
                       parent.appendChild(fallback);
                     }
                   }}
                   onLoad={() => {
                     console.log('Footer logo loaded successfully:', content.headerLogo);
+                    // Remove any fallback text if image loads successfully
+                    const parent = (e.target as HTMLImageElement).parentElement;
+                    const fallback = parent?.querySelector('.fallback-logo');
+                    if (fallback) {
+                      fallback.remove();
+                    }
                   }}
                 />
               ) : (
@@ -91,10 +120,10 @@ const Footer = () => {
               {language === 'de' ? 'Schnelle Links' : 'Quick Links'}
             </h3>
             <ul className="space-y-2">
-              <li><a href="#home" className="text-gray-400 hover:text-white transition-colors">{getNavText('home')}</a></li>
-              <li><a href="#features" className="text-gray-400 hover:text-white transition-colors">{getNavText('features')}</a></li>
-              <li><a href="#download" className="text-gray-400 hover:text-white transition-colors">{getNavText('download')}</a></li>
-              <li><a href="#faq" className="text-gray-400 hover:text-white transition-colors">{getNavText('faq')}</a></li>
+              <li><button onClick={() => scrollToSection('#home')} className="text-gray-400 hover:text-white transition-colors">{getNavText('home')}</button></li>
+              <li><button onClick={() => scrollToSection('#features')} className="text-gray-400 hover:text-white transition-colors">{getNavText('features')}</button></li>
+              <li><button onClick={() => scrollToSection('#download')} className="text-gray-400 hover:text-white transition-colors">{getNavText('download')}</button></li>
+              <li><button onClick={() => scrollToSection('#faq')} className="text-gray-400 hover:text-white transition-colors">{getNavText('faq')}</button></li>
             </ul>
           </div>
 

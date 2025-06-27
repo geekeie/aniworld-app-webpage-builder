@@ -4,11 +4,14 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminData } from '@/hooks/useAdminData';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
   const { t, language, setLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const { content } = useAdminData();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   console.log('Navbar received content:', content);
   console.log('Header logo:', content.headerLogo);
@@ -22,9 +25,22 @@ const Navbar = () => {
   ];
 
   const scrollToSection = (href: string) => {
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    // If not on homepage, navigate to homepage first
+    if (location.pathname !== '/') {
+      navigate('/');
+      // Wait for navigation to complete then scroll
+      setTimeout(() => {
+        const element = document.querySelector(href);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      // Already on homepage, just scroll
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
     }
     setIsOpen(false);
   };
@@ -68,15 +84,21 @@ const Navbar = () => {
                   target.style.display = 'none';
                   // Show fallback text
                   const parent = target.parentElement;
-                  if (parent) {
+                  if (parent && !parent.querySelector('.fallback-logo')) {
                     const fallback = document.createElement('div');
-                    fallback.className = 'text-xl font-bold text-gradient';
+                    fallback.className = 'text-xl font-bold text-gradient fallback-logo';
                     fallback.textContent = 'AniWorld';
                     parent.appendChild(fallback);
                   }
                 }}
                 onLoad={() => {
                   console.log('Header logo loaded successfully:', content.headerLogo);
+                  // Remove any fallback text if image loads successfully
+                  const parent = (document.querySelector('img[alt="AniWorld App"]') as HTMLImageElement)?.parentElement;
+                  const fallback = parent?.querySelector('.fallback-logo');
+                  if (fallback) {
+                    fallback.remove();
+                  }
                 }}
               />
             ) : (

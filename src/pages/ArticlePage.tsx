@@ -8,15 +8,21 @@ import SEOHead from '@/components/SEOHead';
 import ContentSection from '@/components/ContentSection';
 import { Button } from '@/components/ui/button';
 import { Download, Play, Shield, Smartphone, Star, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const ArticlePage = () => {
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
 
   const scrollToDownload = () => {
-    const element = document.getElementById('download');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    // Navigate to homepage first, then scroll to download section
+    navigate('/');
+    setTimeout(() => {
+      const element = document.getElementById('download');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   return (

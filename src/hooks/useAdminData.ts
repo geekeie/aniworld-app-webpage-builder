@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   getSiteContent, 
@@ -94,7 +93,7 @@ export const useAdminData = () => {
         setContent(prevContent => ({ 
           ...defaultContent, 
           ...prevContent, 
-          ...siteContentResult.value 
+          ...(siteContentResult.value as Partial<SiteContent>)
         }));
       }
 

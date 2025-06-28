@@ -87,7 +87,10 @@ export const useAdminData = () => {
       
       // Process site content
       const siteContentResult = results[0];
-      if (siteContentResult.status === 'fulfilled' && siteContentResult.value) {
+      if (siteContentResult.status === 'fulfilled' && 
+          siteContentResult.value && 
+          typeof siteContentResult.value === 'object' && 
+          !Array.isArray(siteContentResult.value)) {
         setContent(prevContent => ({ 
           ...defaultContent, 
           ...prevContent, 

@@ -86,22 +86,25 @@ export const useAdminData = () => {
       ]);
       
       // Process site content
-      if (results[0].status === 'fulfilled' && results[0].value) {
+      const siteContentResult = results[0];
+      if (siteContentResult.status === 'fulfilled' && siteContentResult.value) {
         setContent(prevContent => ({ 
           ...defaultContent, 
           ...prevContent, 
-          ...results[0].value 
+          ...siteContentResult.value 
         }));
       }
 
       // Process blogs
-      if (results[1].status === 'fulfilled' && Array.isArray(results[1].value)) {
-        setBlogs(results[1].value);
+      const blogsResult = results[1];
+      if (blogsResult.status === 'fulfilled' && Array.isArray(blogsResult.value)) {
+        setBlogs(blogsResult.value);
       }
 
       // Process screenshots with validation
-      if (results[2].status === 'fulfilled' && Array.isArray(results[2].value)) {
-        const validatedScreenshots = results[2].value
+      const screenshotsResult = results[2];
+      if (screenshotsResult.status === 'fulfilled' && Array.isArray(screenshotsResult.value)) {
+        const validatedScreenshots = screenshotsResult.value
           .filter(screenshot => screenshot.image_url && screenshot.image_url.trim() !== '')
           .map(screenshot => ({
             ...screenshot,
@@ -112,9 +115,10 @@ export const useAdminData = () => {
       }
 
       // Process media files with proper URL validation
-      if (results[3].status === 'fulfilled' && Array.isArray(results[3].value)) {
+      const mediaResult = results[3];
+      if (mediaResult.status === 'fulfilled' && Array.isArray(mediaResult.value)) {
         const mediaMap: Partial<SiteContent> = {};
-        results[3].value.forEach(file => {
+        mediaResult.value.forEach(file => {
           // Only process files with valid URLs
           if (file.file_url && 
               file.file_url.trim() !== '' && 

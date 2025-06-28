@@ -17,14 +17,25 @@ import { useAdminData } from '@/hooks/useAdminData';
 
 const Homepage = () => {
   const { language } = useLanguage();
-  const { content } = useAdminData();
+  const { content, initialLoadComplete } = useAdminData();
 
   useEffect(() => {
     // Update document language
     document.documentElement.lang = language;
   }, [language]);
 
-  // Remove loading animation - show content immediately
+  // Show loading state until initial data load is complete
+  if (!initialLoadComplete) {
+    return (
+      <div className="min-h-screen bg-anime-darker flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-gray-300">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <SEOHead />

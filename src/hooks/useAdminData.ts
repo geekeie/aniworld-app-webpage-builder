@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { 
   getSiteContent, 
@@ -69,8 +70,9 @@ const defaultContent: SiteContent = {
 export const useAdminData = () => {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [screenshots, setScreenshots] = useState<AppScreenshot[]>([]);
-  const [content, setContent] = useState<SiteContent>(defaultContent);
+  const [content, setContent] = useState<SiteContent | null>(null); // Start with null to indicate no data loaded
   const [loading, setLoading] = useState(true);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   const loadAllData = async () => {
     try {
@@ -84,17 +86,18 @@ export const useAdminData = () => {
         getMediaFiles()
       ]);
       
+      let finalContent = { ...defaultContent };
+      
       // Process site content
       const siteContentResult = results[0];
       if (siteContentResult.status === 'fulfilled' && 
           siteContentResult.value && 
           typeof siteContentResult.value === 'object' && 
           !Array.isArray(siteContentResult.value)) {
-        setContent(prevContent => ({ 
+        finalContent = { 
           ...defaultContent, 
-          ...prevContent, 
           ...(siteContentResult.value as Partial<SiteContent>)
-        }));
+        };
       }
 
       // Process blogs
@@ -139,14 +142,20 @@ export const useAdminData = () => {
         });
         
         if (Object.keys(mediaMap).length > 0) {
-          setContent(prevContent => ({ ...prevContent, ...mediaMap }));
+          finalContent = { ...finalContent, ...mediaMap };
         }
       }
       
+      // Set content only once with all data merged
+      setContent(finalContent);
+      
     } catch (error) {
       console.error('Error loading data:', error);
+      // Set default content even on error to prevent showing null
+      setContent(defaultContent);
     } finally {
       setLoading(false);
+      setInitialLoadComplete(true);
     }
   };
 
@@ -163,9 +172,10 @@ export const useAdminData = () => {
     setBlogs,
     screenshots,
     setScreenshots,
-    content,
-    setContent,
+    content: content || defaultContent, // Always return content, never null
+    setContent: (newContent: SiteContent) => setContent(newContent),
     loading,
+    initialLoadComplete,
     loadAllData,
     refreshData
   };

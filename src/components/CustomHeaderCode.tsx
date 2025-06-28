@@ -3,9 +3,12 @@ import { useEffect } from 'react';
 import { useAdminData } from '@/hooks/useAdminData';
 
 const CustomHeaderCode = () => {
-  const { content } = useAdminData();
+  const { content, initialLoadComplete } = useAdminData();
 
   useEffect(() => {
+    // Only apply custom code after initial load is complete
+    if (!initialLoadComplete) return;
+
     const loadAndApplyCustomCode = async () => {
       try {
         const customCode = content.customHeaderCode;
@@ -88,7 +91,7 @@ const CustomHeaderCode = () => {
       const customElements = document.querySelectorAll('[data-custom-header-code]');
       customElements.forEach(element => element.remove());
     };
-  }, [content.customHeaderCode]);
+  }, [content.customHeaderCode, initialLoadComplete]);
 
   return null;
 };

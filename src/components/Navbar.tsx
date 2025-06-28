@@ -113,6 +113,13 @@ const Navbar = () => {
                   className="h-8 w-8 object-contain"
                   loading="eager"
                   fetchPriority="high"
+                  style={{ imageRendering: 'crisp-edges' }}
+                  onLoad={() => console.log('Header logo loaded')}
+                  onError={(e) => {
+                    console.error('Header logo failed to load:', logoUrl);
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
                 />
               )}
               <div className="text-xl font-bold text-gradient">AniWorld</div>

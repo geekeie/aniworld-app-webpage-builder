@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Download, Star } from 'lucide-react';
@@ -18,6 +18,8 @@ interface HeroProps {
 
 const Hero = ({ content }: HeroProps) => {
   const { t, language } = useLanguage();
+  const [backgroundLoaded, setBackgroundLoaded] = useState(false);
+  const [foregroundLoaded, setForegroundLoaded] = useState(false);
 
   const scrollToDownload = () => {
     const element = document.getElementById('download');
@@ -45,6 +47,39 @@ const Hero = ({ content }: HeroProps) => {
     }
 
     return stars;
+  };
+
+  // Preload hero images for instant loading
+  React.useEffect(() => {
+    if (content.heroBackgroundImage && content.heroBackgroundImage !== '/hero-image.png') {
+      const img = new Image();
+      img.onload = () => setBackgroundLoaded(true);
+      img.onerror = () => console.error('Failed to preload hero background');
+      img.src = content.heroBackgroundImage;
+    } else {
+      setBackgroundLoaded(true);
+    }
+
+    if (content.heroForegroundLogo) {
+      const img = new Image();
+      img.onload = () => setForegroundLoaded(true);
+      img.onerror = () => console.error('Failed to preload hero foreground logo');
+      img.src = content.heroForegroundLogo;
+    } else {
+      setForegroundLoaded(true);
+    }
+  }, [content.heroBackgroundImage, content.heroForegroundLogo]);
+
+  const getBackgroundStyle = () => {
+    const imageUrl = content.heroBackgroundImage || '/hero-image.png';
+    return {
+      backgroundImage: `url(${imageUrl})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      transition: 'opacity 0.3s ease-in-out',
+      opacity: backgroundLoaded ? 1 : 0.7
+    };
   };
 
   return (
@@ -104,12 +139,7 @@ const Hero = ({ content }: HeroProps) => {
               {/* Background Image Container */}
               <div 
                 className="w-80 h-96 rounded-3xl shadow-2xl border border-gray-700 p-6 animate-float relative overflow-hidden"
-                style={{
-                  backgroundImage: content.heroBackgroundImage ? `url(${content.heroBackgroundImage})` : `url(/hero-image.png)`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat'
-                }}
+                style={getBackgroundStyle()}
               >
                 {/* Overlay for better text readability */}
                 <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-purple-900/50 rounded-3xl"></div>
@@ -117,16 +147,26 @@ const Hero = ({ content }: HeroProps) => {
                 {/* Content */}
                 <div className="relative z-10 w-full h-full flex items-center justify-center">
                   <div className="text-center text-white">
-                    {content.heroForegroundLogo ? (
+                    {content.heroForegroundLogo && foregroundLoaded ? (
                       <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                         <img 
                           src={content.heroForegroundLogo} 
                           alt="AniWorld App Logo"
                           width="80"
                           height="80"
-                          className="w-full h-full object-contain"
+                          className="w-full h-full object-contain transition-opacity duration-300"
                           loading="eager"
                           fetchPriority="high"
+                          style={{ 
+                            imageRendering: 'crisp-edges',
+                            opacity: foregroundLoaded ? 1 : 0 
+                          }}
+                          onLoad={() => setForegroundLoaded(true)}
+                          onError={(e) => {
+                            console.error('Failed to load hero foreground logo:', content.heroForegroundLogo);
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
                         />
                       </div>
                     ) : (

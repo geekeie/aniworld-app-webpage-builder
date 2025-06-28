@@ -17,17 +17,38 @@ const CustomHeaderCode = () => {
           const existingCustomElements = document.querySelectorAll('[data-custom-header-code]');
           existingCustomElements.forEach(element => element.remove());
           
-          // Create a container div to hold the custom code
-          const customContainer = document.createElement('div');
-          customContainer.setAttribute('data-custom-header-code', 'true');
-          customContainer.innerHTML = customCode;
+          // Create a temporary container to parse the HTML
+          const tempContainer = document.createElement('div');
+          tempContainer.innerHTML = customCode;
           
-          // Append to head
-          document.head.appendChild(customContainer);
+          // Process meta tags first (for Google verification)
+          const metaTags = tempContainer.querySelectorAll('meta');
+          metaTags.forEach(meta => {
+            const existingMeta = document.querySelector(`meta[name="${meta.getAttribute('name')}"]`);
+            if (existingMeta) {
+              existingMeta.remove();
+            }
+            
+            const newMeta = document.createElement('meta');
+            Array.from(meta.attributes).forEach(attr => {
+              newMeta.setAttribute(attr.name, attr.value);
+            });
+            newMeta.setAttribute('data-custom-header-code', 'true');
+            document.head.appendChild(newMeta);
+          });
           
-          // Execute any script tags in the custom code
-          const scripts = customContainer.querySelectorAll('script');
-          scripts.forEach(script => {
+          // Process style tags
+          const styleTags = tempContainer.querySelectorAll('style');
+          styleTags.forEach(style => {
+            const newStyle = document.createElement('style');
+            newStyle.textContent = style.textContent;
+            newStyle.setAttribute('data-custom-header-code', 'true');
+            document.head.appendChild(newStyle);
+          });
+          
+          // Process script tags
+          const scriptTags = tempContainer.querySelectorAll('script');
+          scriptTags.forEach(script => {
             const newScript = document.createElement('script');
             if (script.src) {
               newScript.src = script.src;
@@ -36,28 +57,24 @@ const CustomHeaderCode = () => {
             } else {
               newScript.textContent = script.textContent;
             }
-            // Copy all attributes
             Array.from(script.attributes).forEach(attr => {
-              newScript.setAttribute(attr.name, attr.value);
+              if (!['src', 'async', 'defer'].includes(attr.name)) {
+                newScript.setAttribute(attr.name, attr.value);
+              }
             });
+            newScript.setAttribute('data-custom-header-code', 'true');
             document.head.appendChild(newScript);
           });
           
-          // Special handling for Google verification meta tags
-          const metaTags = customContainer.querySelectorAll('meta[name*="google"]');
-          metaTags.forEach(meta => {
-            const existingMeta = document.querySelector(`meta[name="${meta.getAttribute('name')}"]`);
-            if (existingMeta) {
-              existingMeta.remove();
+          // Force DOM update and verification
+          setTimeout(() => {
+            const verificationMeta = document.querySelector('meta[name="google-site-verification"]');
+            if (verificationMeta) {
+              console.log('Google verification meta tag successfully added:', verificationMeta.getAttribute('content'));
             }
-          });
+          }, 100);
           
           console.log('Custom header code applied successfully');
-          
-          // Force a refresh of Google verification if present
-          if (customCode.includes('google-site-verification') || customCode.includes('google-adsense-account')) {
-            console.log('Google verification code detected and applied');
-          }
         }
       } catch (error) {
         console.error('Error loading custom header code:', error);
@@ -71,7 +88,7 @@ const CustomHeaderCode = () => {
       const customElements = document.querySelectorAll('[data-custom-header-code]');
       customElements.forEach(element => element.remove());
     };
-  }, [content.customHeaderCode]); // Re-run when customHeaderCode changes
+  }, [content.customHeaderCode]);
 
   return null;
 };

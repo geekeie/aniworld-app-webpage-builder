@@ -3,7 +3,9 @@ import React, { useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { updateMediaFile } from '@/services/supabaseService';
 
 interface MediaManagementTabProps {
   content: {
@@ -16,15 +18,41 @@ interface MediaManagementTabProps {
 }
 
 const MediaManagementTab = ({ content, setContent, handleImageUpload }: MediaManagementTabProps) => {
+  const { toast } = useToast();
   const headerLogoInputRef = useRef<HTMLInputElement>(null);
   const heroImageInputRef = useRef<HTMLInputElement>(null);
   const heroLogoInputRef = useRef<HTMLInputElement>(null);
 
-  const handleRemoveImage = (type: 'headerLogo' | 'heroBackgroundImage' | 'heroForegroundLogo') => {
-    setContent({
-      ...content,
-      [type]: ''
-    });
+  const handleRemoveImage = async (type: 'headerLogo' | 'heroBackgroundImage' | 'heroForegroundLogo') => {
+    try {
+      // Update local state immediately
+      setContent({
+        ...content,
+        [type]: ''
+      });
+
+      // Map content keys to database file types
+      const fileTypeMap = {
+        headerLogo: 'header_logo',
+        heroBackgroundImage: 'hero_background', 
+        heroForegroundLogo: 'hero_foreground'
+      };
+
+      // Remove from database
+      await updateMediaFile(fileTypeMap[type], '', '');
+      
+      toast({
+        title: "Image removed",
+        description: "Image has been successfully removed from both the website and database.",
+      });
+    } catch (error) {
+      console.error('Error removing image:', error);
+      toast({
+        title: "Remove failed",
+        description: "Failed to remove image from database. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -70,7 +98,7 @@ const MediaManagementTab = ({ content, setContent, handleImageUpload }: MediaMan
                   className="absolute -top-2 -right-2 border-red-600 text-red-400 w-6 h-6 p-0"
                   onClick={() => handleRemoveImage('headerLogo')}
                 >
-                  <X className="w-3 h-3" />
+                  <Trash2 className="w-3 h-3" />
                 </Button>
               </div>
             )}
@@ -117,7 +145,7 @@ const MediaManagementTab = ({ content, setContent, handleImageUpload }: MediaMan
                   className="absolute -top-2 -right-2 border-red-600 text-red-400 w-6 h-6 p-0"
                   onClick={() => handleRemoveImage('heroBackgroundImage')}
                 >
-                  <X className="w-3 h-3" />
+                  <Trash2 className="w-3 h-3" />
                 </Button>
               </div>
             )}
@@ -163,7 +191,7 @@ const MediaManagementTab = ({ content, setContent, handleImageUpload }: MediaMan
                   className="absolute -top-2 -right-2 border-red-600 text-red-400 w-6 h-6 p-0"
                   onClick={() => handleRemoveImage('heroForegroundLogo')}
                 >
-                  <X className="w-3 h-3" />
+                  <Trash2 className="w-3 h-3" />
                 </Button>
               </div>
             )}

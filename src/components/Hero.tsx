@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Download, Star } from 'lucide-react';
@@ -17,9 +17,7 @@ interface HeroProps {
 }
 
 const Hero = ({ content }: HeroProps) => {
-  const { t, language } = useLanguage();
-  const [backgroundLoaded, setBackgroundLoaded] = useState(false);
-  const [foregroundLoaded, setForegroundLoaded] = useState(false);
+  const { language } = useLanguage();
 
   const scrollToDownload = () => {
     const element = document.getElementById('download');
@@ -49,140 +47,46 @@ const Hero = ({ content }: HeroProps) => {
     return stars;
   };
 
-  // Preload hero images for instant loading
-  React.useEffect(() => {
-    if (content.heroBackgroundImage && content.heroBackgroundImage !== '/hero-image.png') {
-      const img = new Image();
-      img.onload = () => setBackgroundLoaded(true);
-      img.onerror = () => console.error('Failed to preload hero background');
-      img.src = content.heroBackgroundImage;
-    } else {
-      setBackgroundLoaded(true);
-    }
-
-    if (content.heroForegroundLogo) {
-      const img = new Image();
-      img.onload = () => setForegroundLoaded(true);
-      img.onerror = () => console.error('Failed to preload hero foreground logo');
-      img.src = content.heroForegroundLogo;
-    } else {
-      setForegroundLoaded(true);
-    }
-  }, [content.heroBackgroundImage, content.heroForegroundLogo]);
-
-  const getBackgroundStyle = () => {
-    const imageUrl = content.heroBackgroundImage || '/hero-image.png';
-    return {
-      backgroundImage: `url(${imageUrl})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      transition: 'opacity 0.3s ease-in-out',
-      opacity: backgroundLoaded ? 1 : 0.7
-    };
-  };
-
   return (
     <section id="home" className="pt-20 pb-16 min-h-screen flex items-center">
       <div className="container mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
-          <div className="text-center lg:text-left animate-fade-in">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              <span className="text-gradient">{content.heroTitle}</span>
-            </h1>
-            <p className="text-xl text-gray-300 mb-6 leading-relaxed">
-              {content.heroSubtitle}
-            </p>
-            
-            {/* Star Rating */}
-            <div className="flex justify-center lg:justify-start items-center gap-3 mb-8">
-              <div className="flex items-center gap-1">
-                {renderStars(content.appRating)}
-              </div>
-              <span className="text-lg font-bold text-yellow-400">{content.appRating}</span>
-              <span className="text-gray-400">({content.totalRatings.toLocaleString()} {language === 'de' ? 'Bewertungen' : 'ratings'})</span>
+        <div className="text-center max-w-4xl mx-auto">
+          {/* Centered Content - Removed title and subtitle as requested */}
+          
+          {/* Star Rating */}
+          <div className="flex justify-center items-center gap-3 mb-8">
+            <div className="flex items-center gap-1">
+              {renderStars(content.appRating)}
             </div>
-            
-            {/* CTA Button */}
-            <div className="flex justify-center lg:justify-start mb-12">
-              <Button 
-                onClick={scrollToDownload}
-                className="btn-anime text-lg px-8 py-4"
-                size="lg"
-              >
-                <Download className="mr-2 h-5 w-5" />
-                {content.downloadButtonText}
-              </Button>
-            </div>
-
-            {/* Stats */}
-            <div className="flex justify-center lg:justify-start gap-8">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-anime-purple">1M+</div>
-                <div className="text-gray-400 text-sm">Downloads</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-anime-pink">10K+</div>
-                <div className="text-gray-400 text-sm">Anime</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-anime-blue">{content.appRating}★</div>
-                <div className="text-gray-400 text-sm">Rating</div>
-              </div>
-            </div>
+            <span className="text-lg font-bold text-yellow-400">{content.appRating}</span>
+            <span className="text-gray-400">({content.totalRatings.toLocaleString()} {language === 'de' ? 'Bewertungen' : 'ratings'})</span>
+          </div>
+          
+          {/* CTA Button */}
+          <div className="flex justify-center mb-12">
+            <Button 
+              onClick={scrollToDownload}
+              className="btn-anime text-lg px-8 py-4"
+              size="lg"
+            >
+              <Download className="mr-2 h-5 w-5" />
+              {content.downloadButtonText}
+            </Button>
           </div>
 
-          {/* Right Content - App Preview with Background Image */}
-          <div className="flex justify-center lg:justify-end animate-fade-in">
-            <div className="relative">
-              {/* Background Image Container */}
-              <div 
-                className="w-80 h-96 rounded-3xl shadow-2xl border border-gray-700 p-6 animate-float relative overflow-hidden"
-                style={getBackgroundStyle()}
-              >
-                {/* Overlay for better text readability */}
-                <div className="absolute inset-0 bg-gradient-to-br from-black/50 to-purple-900/50 rounded-3xl"></div>
-                
-                {/* Content */}
-                <div className="relative z-10 w-full h-full flex items-center justify-center">
-                  <div className="text-center text-white">
-                    {content.heroForegroundLogo && foregroundLoaded ? (
-                      <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                        <img 
-                          src={content.heroForegroundLogo} 
-                          alt="AniWorld App Logo"
-                          width="80"
-                          height="80"
-                          className="w-full h-full object-contain transition-opacity duration-300"
-                          loading="eager"
-                          fetchPriority="high"
-                          style={{ 
-                            imageRendering: 'crisp-edges',
-                            opacity: foregroundLoaded ? 1 : 0 
-                          }}
-                          onLoad={() => setForegroundLoaded(true)}
-                          onError={(e) => {
-                            console.error('Failed to load hero foreground logo:', content.heroForegroundLogo);
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full mx-auto mb-4 flex items-center justify-center">
-                        <span className="text-2xl font-bold">A</span>
-                      </div>
-                    )}
-                    <h3 className="text-xl font-bold mb-2">AniWorld App</h3>
-                    <p className="text-sm opacity-90">Premium Anime Experience</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Floating Elements */}
-              <div className="absolute -top-4 -right-4 w-12 h-12 bg-anime-purple rounded-full animate-pulse"></div>
-              <div className="absolute -bottom-6 -left-6 w-8 h-8 bg-anime-pink rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+          {/* Stats - Simplified layout */}
+          <div className="flex justify-center gap-8 flex-wrap">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-anime-purple">1M+</div>
+              <div className="text-gray-400 text-sm">Downloads</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-anime-pink">10K+</div>
+              <div className="text-gray-400 text-sm">Anime</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-anime-blue">{content.appRating}★</div>
+              <div className="text-gray-400 text-sm">Rating</div>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,9 +7,9 @@ import { useAdminData } from '@/hooks/useAdminData';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
-  const { t, language, setLanguage } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
-  const { content, screenshots } = useAdminData();
+  const { screenshots } = useAdminData();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -81,49 +81,13 @@ const Navbar = () => {
     return translations[language]?.[key] || key;
   };
 
-  // Get the logo URL with fallback handling
-  const getLogoUrl = () => {
-    // Check if headerLogo exists and is a valid URL
-    if (content.headerLogo && 
-        content.headerLogo.trim() !== '' && 
-        content.headerLogo !== 'undefined' && 
-        content.headerLogo !== 'null' &&
-        (content.headerLogo.startsWith('http') || content.headerLogo.startsWith('data:'))) {
-      return content.headerLogo;
-    }
-    
-    return null;
-  };
-
-  const logoUrl = getLogoUrl();
-
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-anime-darker/95 backdrop-blur-sm border-b border-gray-800">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+          {/* Logo - Simplified without image to improve loading speed */}
           <div className="flex items-center">
-            <div className="flex items-center gap-3">
-              {logoUrl && (
-                <img 
-                  src={logoUrl} 
-                  alt="AniWorld App"
-                  width="32"
-                  height="32"
-                  className="h-8 w-8 object-contain"
-                  loading="eager"
-                  fetchPriority="high"
-                  style={{ imageRendering: 'crisp-edges' }}
-                  onLoad={() => console.log('Header logo loaded')}
-                  onError={(e) => {
-                    console.error('Header logo failed to load:', logoUrl);
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                />
-              )}
-              <div className="text-xl font-bold text-gradient">AniWorld</div>
-            </div>
+            <div className="text-xl font-bold text-gradient">AniWorld</div>
           </div>
 
           {/* Desktop Navigation */}

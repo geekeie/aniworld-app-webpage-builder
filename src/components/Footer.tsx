@@ -5,8 +5,8 @@ import { useAdminData } from '@/hooks/useAdminData';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Footer = () => {
-  const { t, language } = useLanguage();
-  const { content, screenshots } = useAdminData();
+  const { language } = useLanguage();
+  const { screenshots } = useAdminData();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -69,22 +69,6 @@ const Footer = () => {
     }
   };
 
-  // Get the logo URL with fallback handling
-  const getLogoUrl = () => {
-    // Check if headerLogo exists and is a valid URL
-    if (content.headerLogo && 
-        content.headerLogo.trim() !== '' && 
-        content.headerLogo !== 'undefined' && 
-        content.headerLogo !== 'null' &&
-        (content.headerLogo.startsWith('http') || content.headerLogo.startsWith('data:'))) {
-      return content.headerLogo;
-    }
-    
-    return null;
-  };
-
-  const logoUrl = getLogoUrl();
-
   return (
     <footer className="bg-anime-darker py-12 border-t border-gray-800">
       <div className="container mx-auto px-4">
@@ -92,19 +76,7 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="md:col-span-2">
             <div className="flex items-center mb-4">
-              <div className="flex items-center gap-3">
-                {logoUrl && (
-                  <img 
-                    src={logoUrl} 
-                    alt="AniWorld App"
-                    width="32"
-                    height="32"
-                    className="h-8 w-8 object-contain"
-                    loading="lazy"
-                  />
-                )}
-                <div className="text-xl font-bold text-gradient">AniWorld</div>
-              </div>
+              <div className="text-xl font-bold text-gradient">AniWorld</div>
             </div>
             <p className="text-gray-400 mb-4">
               {language === 'de' 

@@ -76,42 +76,45 @@ export const useAdminData = () => {
   const loadAllData = async () => {
     try {
       setLoading(true);
-      // Load all data in parallel for better performance
-      const [siteContent, blogsData, screenshotsData, mediaFiles] = await Promise.all([
-        getSiteContent().catch(() => null),
-        getAllBlogs().catch(() => []),
-        getScreenshots().catch(() => []),
-        getMediaFiles().catch(() => [])
+      
+      // Use Promise.allSettled for better error handling and performance
+      const results = await Promise.allSettled([
+        getSiteContent(),
+        getAllBlogs(),
+        getScreenshots(),
+        getMediaFiles()
       ]);
       
-      // Update site content with proper fallbacks
-      if (siteContent && typeof siteContent === 'object') {
+      // Process site content
+      if (results[0].status === 'fulfilled' && results[0].value) {
         setContent(prevContent => ({ 
           ...defaultContent, 
           ...prevContent, 
-          ...siteContent 
+          ...results[0].value 
         }));
       }
 
-      // Update blogs
-      if (Array.isArray(blogsData)) {
-        setBlogs(blogsData);
+      // Process blogs
+      if (results[1].status === 'fulfilled' && Array.isArray(results[1].value)) {
+        setBlogs(results[1].value);
       }
 
-      // Update screenshots with validation
-      if (Array.isArray(screenshotsData)) {
-        const validatedScreenshots = screenshotsData.map(screenshot => ({
-          ...screenshot,
-          image_url: screenshot.image_url || ''
-        }));
+      // Process screenshots with validation
+      if (results[2].status === 'fulfilled' && Array.isArray(results[2].value)) {
+        const validatedScreenshots = results[2].value
+          .filter(screenshot => screenshot.image_url && screenshot.image_url.trim() !== '')
+          .map(screenshot => ({
+            ...screenshot,
+            image_url: screenshot.image_url || ''
+          }));
         
         setScreenshots(validatedScreenshots);
       }
 
       // Process media files with proper URL validation
-      const mediaMap: Partial<SiteContent> = {};
-      if (Array.isArray(mediaFiles)) {
-        mediaFiles.forEach(file => {
+      if (results[3].status === 'fulfilled' && Array.isArray(results[3].value)) {
+        const mediaMap: Partial<SiteContent> = {};
+        results[3].value.forEach(file => {
           // Only process files with valid URLs
           if (file.file_url && 
               file.file_url.trim() !== '' && 

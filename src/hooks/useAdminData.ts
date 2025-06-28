@@ -71,9 +71,11 @@ export const useAdminData = () => {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [screenshots, setScreenshots] = useState<AppScreenshot[]>([]);
   const [content, setContent] = useState<SiteContent>(defaultContent);
+  const [loading, setLoading] = useState(true);
 
   const loadAllData = async () => {
     try {
+      setLoading(true);
       // Load all data in parallel for better performance
       const [siteContent, blogsData, screenshotsData, mediaFiles] = await Promise.all([
         getSiteContent().catch(() => null),
@@ -134,6 +136,8 @@ export const useAdminData = () => {
       
     } catch (error) {
       console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -152,6 +156,7 @@ export const useAdminData = () => {
     setScreenshots,
     content,
     setContent,
+    loading,
     loadAllData,
     refreshData
   };

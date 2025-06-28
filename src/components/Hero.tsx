@@ -32,16 +32,16 @@ const Hero = ({ content }: HeroProps) => {
     const hasHalfStar = rating % 1 !== 0;
 
     for (let i = 0; i < fullStars; i++) {
-      stars.push(<Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />);
+      stars.push(<Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />);
     }
 
     if (hasHalfStar) {
-      stars.push(<Star key="half" className="w-5 h-5 fill-yellow-400 text-yellow-400 opacity-50" />);
+      stars.push(<Star key="half" className="w-4 h-4 fill-yellow-400 text-yellow-400 opacity-50" />);
     }
 
     const emptyStars = 5 - Math.ceil(rating);
     for (let i = 0; i < emptyStars; i++) {
-      stars.push(<Star key={`empty-${i}`} className="w-5 h-5 text-gray-400" />);
+      stars.push(<Star key={`empty-${i}`} className="w-4 h-4 text-gray-400" />);
     }
 
     return stars;
@@ -51,7 +51,32 @@ const Hero = ({ content }: HeroProps) => {
     <section id="home" className="pt-20 pb-16 min-h-screen flex items-center">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-4xl mx-auto">
-          {/* Centered Content - Removed title and subtitle as requested */}
+          
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            {content.heroForegroundLogo ? (
+              <img 
+                src={content.heroForegroundLogo} 
+                alt="AniWorld Logo" 
+                className="h-20 w-auto object-contain"
+                loading="eager"
+              />
+            ) : (
+              <div className="h-20 w-20 bg-anime-gradient rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-2xl">AW</span>
+              </div>
+            )}
+          </div>
+
+          {/* H1 Title */}
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+            {content.heroTitle}
+          </h1>
+          
+          {/* Paragraph Subtitle */}
+          <p className="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed max-w-3xl mx-auto">
+            {content.heroSubtitle}
+          </p>
           
           {/* Star Rating */}
           <div className="flex justify-center items-center gap-3 mb-8">
@@ -66,7 +91,7 @@ const Hero = ({ content }: HeroProps) => {
           <div className="flex justify-center mb-12">
             <Button 
               onClick={scrollToDownload}
-              className="btn-anime text-lg px-8 py-4"
+              className="bg-anime-gradient hover:opacity-90 text-white text-lg px-8 py-4 rounded-xl font-semibold transition-opacity duration-300"
               size="lg"
             >
               <Download className="mr-2 h-5 w-5" />
@@ -74,7 +99,7 @@ const Hero = ({ content }: HeroProps) => {
             </Button>
           </div>
 
-          {/* Stats - Simplified layout */}
+          {/* Stats */}
           <div className="flex justify-center gap-8 flex-wrap">
             <div className="text-center">
               <div className="text-2xl font-bold text-anime-purple">1M+</div>

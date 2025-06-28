@@ -47,10 +47,6 @@ const Hero = ({ content }: HeroProps) => {
     return stars;
   };
 
-  console.log('Hero component received content:', content);
-  console.log('Hero background image:', content.heroBackgroundImage);
-  console.log('Hero foreground logo:', content.heroForegroundLogo);
-
   return (
     <section id="home" className="pt-20 pb-16 min-h-screen flex items-center">
       <div className="container mx-auto px-4">
@@ -126,15 +122,11 @@ const Hero = ({ content }: HeroProps) => {
                         <img 
                           src={content.heroForegroundLogo} 
                           alt="AniWorld App Logo"
+                          width="80"
+                          height="80"
                           className="w-full h-full object-contain"
-                          onError={(e) => {
-                            console.error('Hero foreground logo failed to load:', content.heroForegroundLogo);
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                          onLoad={() => {
-                            console.log('Hero foreground logo loaded successfully:', content.heroForegroundLogo);
-                          }}
+                          loading="eager"
+                          fetchPriority="high"
                         />
                       </div>
                     ) : (

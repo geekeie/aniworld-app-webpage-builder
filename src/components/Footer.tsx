@@ -6,7 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 const Footer = () => {
   const { t, language } = useLanguage();
-  const { content, loading, screenshots } = useAdminData();
+  const { content, screenshots } = useAdminData();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -71,8 +71,6 @@ const Footer = () => {
 
   // Get the logo URL with fallback handling
   const getLogoUrl = () => {
-    if (loading) return null;
-    
     // Check if headerLogo exists and is a valid URL
     if (content.headerLogo && 
         content.headerLogo.trim() !== '' && 
@@ -99,12 +97,10 @@ const Footer = () => {
                   <img 
                     src={logoUrl} 
                     alt="AniWorld App"
-                    className="h-8 w-auto object-contain"
-                    onError={(e) => {
-                      console.error('Footer logo failed to load:', logoUrl);
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
+                    width="32"
+                    height="32"
+                    className="h-8 w-8 object-contain"
+                    loading="lazy"
                   />
                 )}
                 <div className="text-xl font-bold text-gradient">AniWorld</div>

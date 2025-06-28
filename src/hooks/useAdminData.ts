@@ -68,33 +68,18 @@ const defaultContent: SiteContent = {
 };
 
 export const useAdminData = () => {
-  const [loading, setLoading] = useState(true);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [screenshots, setScreenshots] = useState<AppScreenshot[]>([]);
   const [content, setContent] = useState<SiteContent>(defaultContent);
 
   const loadAllData = async () => {
     try {
-      setLoading(true);
-      
       // Load all data in parallel for better performance
       const [siteContent, blogsData, screenshotsData, mediaFiles] = await Promise.all([
-        getSiteContent().catch(err => {
-          console.warn('Failed to load site content:', err);
-          return null;
-        }),
-        getAllBlogs().catch(err => {
-          console.warn('Failed to load blogs:', err);
-          return [];
-        }),
-        getScreenshots().catch(err => {
-          console.warn('Failed to load screenshots:', err);
-          return [];
-        }),
-        getMediaFiles().catch(err => {
-          console.warn('Failed to load media files:', err);
-          return [];
-        })
+        getSiteContent().catch(() => null),
+        getAllBlogs().catch(() => []),
+        getScreenshots().catch(() => []),
+        getMediaFiles().catch(() => [])
       ]);
       
       // Update site content with proper fallbacks
@@ -111,20 +96,13 @@ export const useAdminData = () => {
         setBlogs(blogsData);
       }
 
-      // Update screenshots with validation and debugging
+      // Update screenshots with validation
       if (Array.isArray(screenshotsData)) {
-        console.log('Raw screenshots data from database:', screenshotsData);
+        const validatedScreenshots = screenshotsData.map(screenshot => ({
+          ...screenshot,
+          image_url: screenshot.image_url || ''
+        }));
         
-        // Validate and process screenshots
-        const validatedScreenshots = screenshotsData.map(screenshot => {
-          console.log('Processing screenshot:', screenshot);
-          return {
-            ...screenshot,
-            image_url: screenshot.image_url || ''
-          };
-        });
-        
-        console.log('Processed screenshots:', validatedScreenshots);
         setScreenshots(validatedScreenshots);
       }
 
@@ -156,8 +134,6 @@ export const useAdminData = () => {
       
     } catch (error) {
       console.error('Error loading data:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -170,7 +146,6 @@ export const useAdminData = () => {
   }, []);
 
   return {
-    loading,
     blogs,
     setBlogs,
     screenshots,
